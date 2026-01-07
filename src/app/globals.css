@@ -1,0 +1,600 @@
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f111a;
+    --foreground: #ededed;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: #0f111a;
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.custom-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.custom-tabs .ant-tabs-nav {
+  margin-bottom: 0 !important;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  align-items: flex-end;
+}
+.custom-tabs .ant-tabs-nav::before {
+  border-bottom: none !important;
+}
+.custom-tabs .ant-tabs-content-holder {
+  flex: 1;
+  overflow: hidden;
+}
+.custom-tabs .ant-tabs-content {
+  height: 100%;
+}
+.custom-tabs .ant-tabs-tabpane {
+  height: 100%;
+}
+.custom-tabs .ant-tabs-nav-list {
+  width: 100%;
+}
+.custom-tabs .ant-tabs-tab {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 !important;
+  margin: 0 !important;
+}
+.custom-tabs .ant-tabs-tab-btn {
+  color: rgba(255,255,255,0.5) !important;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+.custom-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: rgba(255,255,255,0.8) !important;
+}
+.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+  font-weight: 500;
+}
+.custom-tabs .ant-tabs-ink-bar {
+  background: #3b82f6 !important;
+  height: 3px !important;
+  border-radius: 3px 3px 0 0;
+}
+
+.glass-modal .ant-modal-content {
+  background-color: rgba(28, 31, 46, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0f111a;
+  padding: 0 32px;
+}
+
+.auth-stack {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 10%;
+}
+
+.app-logo-title {
+  color: #fff;
+  font-size: clamp(40px, 6vw, 64px);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 100px rgb(156, 43, 231);
+}
+
+.app-logo-image {
+  width: 150px;
+  height: 150px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 384px;
+  background-color: rgba(28, 31, 46, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 32px;
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 0 16px;
+  }
+}
+
+.video-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background: rgba(28, 31, 46, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.video-call-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background: transparent;
+}
+
+.video-call-container.fullscreen {
+  background: #0f111a;
+}
+
+.video-call-top-list {
+  height: 130px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  align-items: center;
+  background: rgba(28, 31, 46, 0.6);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.video-call-main-window {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+}
+
+.video-player-container {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  max-width: 100%;
+  aspect-ratio: 16/9;
+  background: #0f111a;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.video-controls-wrapper {
+  position: absolute;
+  bottom: 27px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: max-content;
+}
+
+.video-channel-name {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  color: rgba(255,255,255,0.75); 
+  font-size: 12px;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  background: rgba(28, 31, 46, 0.8);
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  max-width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.video-call-controls {
+  position: relative;
+  background: rgba(28, 31, 46, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.36);
+}
+
+.video-call-controls .ant-btn {
+  transition: all 0.2s ease;
+}
+
+.video-call-controls .ant-btn:hover {
+  box-shadow: 0 4px 20px rgba(54, 67, 138, 0.308) !important;
+}
+
+.glass-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(28, 31, 46, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 768px) {
+  .room-layout {
+    display: block !important;
+    position: relative !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+  
+  .room-content {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 55% !important;
+    padding: 8px !important;
+    padding-bottom: 6px !important;
+    overflow: hidden !important;
+    z-index: 10 !important;
+    display: block !important;
+  }
+  
+  .room-sider {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: 45% !important;
+    padding-top: 6px !important;
+    z-index: 10 !important;
+    display: block !important;
+  }
+
+  .video-wrapper {
+    height: 100% !important;
+    width: 100% !important;
+    position: relative !important;
+    background: #1c1f2e !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .video-call-container {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 5;
+    background: transparent !important;
+  }
+
+  .video-call-top-list {
+    height: 80px !important;
+    padding: 4px 8px !important;
+    min-height: 80px !important;
+  }
+  
+  .video-card-small {
+    width: 100px !important;
+    height: 56px !important;
+  }
+
+  .video-call-main-window {
+    padding: 4px !important;
+  }
+
+  .video-player-container {
+    aspect-ratio: unset !important;
+    height: 100% !important;
+    width: 100% !important;
+    border-radius: 16px !important;
+  }
+
+  .video-controls-wrapper {
+    bottom: 12px !important;
+  }
+
+  .video-call-controls {
+    padding: 8px 16px !important;
+    transform: scale(0.75) !important;
+    width: max-content;
+    white-space: nowrap;
+  }
+}
+
+.auth-input {
+  background-color: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: white !important;
+}
+
+.auth-input input {
+  background-color: transparent !important;
+  color: white !important;
+}
+
+.auth-input::placeholder,
+.auth-input input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.video-card-small {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-card-small:hover {
+  transform: scale(1.05);
+  border-color: #3b82f6 !important; /* blue-500 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .room-layout {
+    height: 100dvh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: row !important;
+    position: relative !important;
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+
+  .room-content {
+    width: 65% !important;
+    flex: 0 0 65% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    z-index: 10 !important;
+  }
+  
+  .room-sider {
+    width: auto !important;
+    flex: 1 !important;
+    height: 100% !important;
+    padding: 0 !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    z-index: 10 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .video-wrapper {
+    height: 100% !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .video-player-container {
+    aspect-ratio: unset !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    border-radius: 12px !important;
+  }
+
+  .video-call-top-list {
+    height: 50px !important;
+    padding: 2px 4px !important;
+    min-height: 50px !important;
+  }
+
+  .custom-tabs .ant-tabs-nav {
+    height: 50px !important;
+  }
+
+  .video-card-small {
+    width: 70px !important;
+    height: 40px !important;
+  }
+
+  .video-controls-wrapper {
+    bottom: 8px !important;
+  }
+
+  .video-call-controls {
+    transform: scale(0.85) !important;
+    padding: 4px 12px !important;
+    width: auto !important;
+    white-space: nowrap;
+  }
+  
+  .video-call-controls .ant-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    font-size: 16px !important;
+  }
+
+  .video-call-main-window {
+    padding: 2px !important;
+  }
+}
+
+.participant-item {
+  padding: 12px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  cursor: default;
+}
+
+.participant-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.room-card {
+  background-color: rgba(255, 255, 255, 0.02);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.room-card:hover {
+  transform: translateZ(20px) scale(1.01);
+  box-shadow: 0 4px 20px rgba(46, 59, 133, 0.212)
+}
+
+.room-card .ant-typography {
+  transition: color 0.3s ease;
+}
+
+.room-card:hover .ant-typography {
+  color: #fff !important;
+}
+
+.room-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.room-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.room-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+@media (max-width: 768px) {
+  .lobby-header {
+    padding: 12px 16px !important;
+  }
+
+  .lobby-header-user-info {
+    display: none !important;
+  }
+  
+  .lobby-title {
+    font-size: 18px !important;
+  }
+  
+  .lobby-content {
+    padding: 0 16px 24px 16px !important;
+  }
+  
+  .create-room-btn-container {
+    width: 100%;
+    display: flex;
+  }
+  
+  .create-room-btn {
+    width: 100%;
+  }
+  
+  .room-card {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 16px;
+  }
+  
+  .room-card-content {
+    width: 100%;
+  }
+
+  .room-card-text {
+    width: 100%;
+  }
+  
+  .room-card-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+  
+  .room-card-actions button {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
