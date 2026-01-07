@@ -1,5 +1,7 @@
 # Трещотка
 
+https://treshotka.vercel.app/
+
 Компактное приложение видеочата на Next.js 16, TypeScript, Redux Toolkit, Firebase, Agora и Ant Design.
 
 ## Быстрый старт
