@@ -16,7 +16,6 @@ export default function Chat({
   roomId,
 }: {
   roomId: string;
-  roomName?: string;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");

@@ -21,7 +21,7 @@ import {
   Spin,
   Tag,
 } from "antd";
-import { LogoutOutlined, TeamOutlined, PlusOutlined } from "@ant-design/icons";
+import { LogoutOutlined, PlusOutlined } from "@ant-design/icons";
 import RoomList from "@/components/lobby/RoomList";
 import CreateRoomModal from "@/components/lobby/CreateRoomModal";
 import PasswordModal from "@/components/lobby/PasswordModal";

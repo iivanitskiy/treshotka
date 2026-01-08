@@ -197,18 +197,18 @@ body {
   padding: 24px;
   display: flex;
   justify-content: center;
-  align-items: center;
   min-height: 0;
+  height: min-content;
 }
 
 .video-player-container {
-  width: 100%;
-  height: 100%;
-  max-height: 100%;
+  width: 1280px;
+  height: min-content;
   max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 16/9;
   background: #0f111a;
-  border-radius: 32px;
+  border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
@@ -216,14 +216,25 @@ body {
 }
 
 .video-controls-wrapper {
-  position: absolute;
-  bottom: 27px;
-  left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
   z-index: 20;
-  width: max-content;
+  width: 100%;
+  padding: 16px 0 24px 0; /* Отступы сверху и снизу */
+  background: transparent; /* Или #0f111a если нужно перекрыть фон */
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
+.video-controls-wrapper {
+  transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+  transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.video-controls-wrapper.hidden {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+}
 .video-channel-name {
   position: absolute;
   top: 16px;
@@ -245,7 +256,9 @@ body {
 }
 
 .video-call-controls {
-  position: relative;
+  width: min-content;
+  align-self: center;
+  margin: 2px;
   background: rgba(28, 31, 46, 0.7);
   backdrop-filter: blur(12px);
   padding: 12px 24px;
@@ -289,8 +302,8 @@ body {
     top: 0 !important;
     left: 0 !important;
     width: 100% !important;
-    height: 55% !important;
-    padding: 8px !important;
+    height: 45% !important;
+    padding: 12px !important;
     padding-bottom: 6px !important;
     overflow: hidden !important;
     z-index: 10 !important;
@@ -298,13 +311,14 @@ body {
   }
   
   .room-sider {
+    padding: 12px !important;
     position: absolute !important;
     bottom: 0 !important;
     left: 0 !important;
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
-    height: 45% !important;
+    height: 55% !important;
     padding-top: 6px !important;
     z-index: 10 !important;
     display: block !important;
@@ -325,7 +339,7 @@ body {
     left: 0;
     width: 100% !important;
     height: 100% !important;
-    z-index: 5;
+    z-index: 0;
     background: transparent !important;
   }
 
@@ -341,18 +355,27 @@ body {
   }
 
   .video-call-main-window {
+    height: 30px !important;
     padding: 4px !important;
   }
 
   .video-player-container {
-    aspect-ratio: unset !important;
-    height: 100% !important;
-    width: 100% !important;
-    border-radius: 16px !important;
+    width: 1280px;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: 16/9;
+    background: #0f111a;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    position: relative;
+
   }
 
   .video-controls-wrapper {
     bottom: 12px !important;
+    padding: 0 12px !important;
   }
 
   .video-call-controls {
@@ -390,6 +413,10 @@ body {
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
+  .auth-stack {
+    padding-top: 3% !important;
+  }
+
   .room-layout {
     height: 100dvh !important;
     overflow: hidden !important;
@@ -434,13 +461,28 @@ body {
     flex-direction: column !important;
   }
 
-  .video-player-container {
-    aspect-ratio: unset !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-width: none !important;
-    border-radius: 12px !important;
-  }
+.video-player-container {
+  width: 1280px;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16/9;
+  background: #0f111a;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.video-call-container.fullscreen .video-player-container {
+  width: min(100vw, calc(100vh * 16 / 9));
+  aspect-ratio: 16/9;
+}
+
+.video-player-container video {
+  width: 100%;
+  height: 100%;
+}
 
   .video-call-top-list {
     height: 50px !important;
@@ -458,7 +500,9 @@ body {
   }
 
   .video-controls-wrapper {
-    bottom: 8px !important;
+    position: fixed;
+    bottom: -4px !important;
+    padding: 0 12px !important;
   }
 
   .video-call-controls {

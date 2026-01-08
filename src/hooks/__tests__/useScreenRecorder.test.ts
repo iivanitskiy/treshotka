@@ -14,7 +14,7 @@ const mockStream = {
   getVideoTracks: jest.fn(() => [{ onended: null }]),
 };
 
-global.MediaRecorder = jest.fn(() => mockMediaRecorder) as any;
+global.MediaRecorder = jest.fn(() => mockMediaRecorder) as unknown as typeof MediaRecorder;
 Object.defineProperty(global.navigator, 'mediaDevices', {
   value: {
     getDisplayMedia: jest.fn(() => Promise.resolve(mockStream)),

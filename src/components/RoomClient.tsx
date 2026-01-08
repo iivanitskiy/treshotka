@@ -29,7 +29,7 @@ export default function RoomClient({
     () => AgoraRTC.createClient({ codec: "vp8", mode: "rtc" }),
     []
   );
-  const client = useRTCClient(agoraClient as any);
+  const client = useRTCClient(agoraClient);
 
   useEffect(() => {
     if (user.uid && user.displayName) {
@@ -56,7 +56,7 @@ export default function RoomClient({
       >
         <Content
           className="room-content"
-          style={{ padding: "24px", display: "flex", flexDirection: "column" }}
+          style={{ padding: "24px 0 24px 24px", display: "flex", flexDirection: "column" }}
         >
           <div className="video-wrapper">
             <VideoCall
@@ -70,7 +70,7 @@ export default function RoomClient({
           className="room-sider"
           width={400}
           theme="light"
-          style={{ background: "transparent", padding: "24px", paddingLeft: 0 }}
+          style={{ background: "transparent", padding: "24px" }}
         >
           <div className="glass-panel">
             <Tabs
@@ -80,7 +80,7 @@ export default function RoomClient({
                 {
                   label: "Чат",
                   key: "chat",
-                  children: <Chat roomId={roomId} roomName={roomName} />,
+                  children: <Chat roomId={roomId} />,
                 },
                 {
                   label: "Участники",

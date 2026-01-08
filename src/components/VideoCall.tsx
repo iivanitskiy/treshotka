@@ -3,12 +3,14 @@
 import {
   LocalUser,
   RemoteUser,
-  useJoin,
-  useLocalCameraTrack,
-  useLocalMicrophoneTrack,
   usePublish,
   useRemoteUsers,
   useRTCClient,
+  ILocalTrack,
+} from "agora-rtc-react";
+import AgoraRTC, {
+  ICameraVideoTrack,
+  IMicrophoneAudioTrack,
 } from "agora-rtc-react";
 import { useState, useEffect, useRef } from "react";
 import { Button, Tooltip, Space } from "antd";
@@ -29,50 +31,136 @@ import type { IAgoraRTCRemoteUser } from "agora-rtc-react";
 import { useScreenRecorder } from "@/hooks/useScreenRecorder";
 import { getLoudest } from "@/lib/utils/audio";
 
-export const VideoCall = ({
+const ActiveCallSession = ({
   appId,
   channelName,
-  canRecord = false,
+  micOn,
+  cameraOn,
+  onLeave,
 }: {
   appId: string;
   channelName: string;
-  canRecord?: boolean;
+  micOn: boolean;
+  cameraOn: boolean;
+  onLeave: () => void;
 }) => {
-  const router = useRouter();
-  const [activeConnection, setActiveConnection] = useState(false);
-  const [micOn, setMicOn] = useState(true);
-  const [cameraOn, setCameraOn] = useState(true);
   const client = useRTCClient();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
+  const [localUid, setLocalUid] = useState<string | number | null>(null);
   const [focusedUid, setFocusedUid] = useState<string | number>("local");
   const [isManualFocus, setIsManualFocus] = useState(false);
+  const [speakingUid, setSpeakingUid] = useState<string | number | null>(null);
 
-  const { isRecording, startRecording, stopRecording } = useScreenRecorder({
-    channelName,
-  });
-
-  const { data: localUid } = useJoin(
-    {
-      appid: appId,
-      channel: channelName,
-      token: null,
-    },
-    activeConnection
+  const [audioTrack, setAudioTrack] = useState<IMicrophoneAudioTrack | null>(
+    null
   );
+  const [videoTrack, setVideoTrack] = useState<ICameraVideoTrack | null>(null);
+  const tracksRef = useRef<{
+    audio: IMicrophoneAudioTrack | null;
+    video: ICameraVideoTrack | null;
+  }>({ audio: null, video: null });
 
-  const { localMicrophoneTrack } = useLocalMicrophoneTrack(
-    micOn && activeConnection
-  );
-  const { localCameraTrack } = useLocalCameraTrack(
-    cameraOn && activeConnection,
-    {
-      encoderConfig: "720p_1",
+  useEffect(() => {
+    let isMounted = true;
+
+    const initTracks = async () => {
+      // Функция с повторными попытками для микрофона
+      const createMicWithRetry = async (
+        retries = 3,
+        delay = 1000
+      ): Promise<IMicrophoneAudioTrack> => {
+        try {
+          return await AgoraRTC.createMicrophoneAudioTrack({
+            encoderConfig: "speech_standard", // Используем стандартный профиль
+          });
+        } catch (err: any) {
+          if (
+            retries > 0 &&
+            (err.name === "NotReadableError" || err.code === "NOT_READABLE")
+          ) {
+            console.warn(
+              `Mic busy, retrying in ${delay}ms... (${retries} left)`
+            );
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return createMicWithRetry(retries - 1, delay * 1.5);
+          }
+          throw err;
+        }
+      };
+
+      // Инициализируем микрофон
+      try {
+        const audio = await createMicWithRetry();
+        if (!isMounted) {
+          audio.stop();
+          audio.close();
+        } else {
+          tracksRef.current.audio = audio;
+          setAudioTrack(audio);
+        }
+      } catch (error) {
+        console.error("Failed to create audio track after retries:", error);
+      }
+
+      // Инициализируем камеру
+      try {
+        const video = await AgoraRTC.createCameraVideoTrack({
+          encoderConfig: "720p_1",
+        });
+        if (!isMounted) {
+          video.stop();
+          video.close();
+        } else {
+          tracksRef.current.video = video;
+          setVideoTrack(video);
+        }
+      } catch (error) {
+        console.error("Failed to create video track:", error);
+      }
+    };
+
+    // Запускаем инициализацию с небольшой задержкой для стабильности
+    const timer = setTimeout(initTracks, 500);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+
+      // Жесткая очистка треков из ref
+      if (tracksRef.current.audio) {
+        tracksRef.current.audio.stop();
+        tracksRef.current.audio.close();
+        tracksRef.current.audio = null;
+      }
+      if (tracksRef.current.video) {
+        tracksRef.current.video.stop();
+        tracksRef.current.video.close();
+        tracksRef.current.video = null;
+      }
+      // Очищаем стейт
+      setAudioTrack(null);
+      setVideoTrack(null);
+    };
+  }, []);
+
+  // Управление состоянием (вкл/выкл) треков
+  useEffect(() => {
+    if (audioTrack) {
+      audioTrack.setEnabled(micOn);
     }
-  );
+  }, [audioTrack, micOn]);
 
-  usePublish([localMicrophoneTrack, localCameraTrack]);
+  useEffect(() => {
+    if (videoTrack) {
+      videoTrack.setEnabled(cameraOn);
+    }
+  }, [videoTrack, cameraOn]);
+
+  {
+    const publishTracks: ILocalTrack[] = [];
+    if (audioTrack) publishTracks.push(audioTrack as unknown as ILocalTrack);
+    if (videoTrack) publishTracks.push(videoTrack as unknown as ILocalTrack);
+    usePublish(publishTracks);
+  }
 
   const remoteUsers = useRemoteUsers();
   const effectiveFocusedUid =
@@ -81,22 +169,41 @@ export const VideoCall = ({
       : "local";
 
   useEffect(() => {
-    if (!client || !activeConnection) return;
+    let ignore = false;
+    client
+      .join(appId, channelName, null, null)
+      .then((uid) => {
+        if (!ignore) setLocalUid(uid);
+      })
+      .catch((err) => {
+        if (!ignore) {
+          console.error("Join failed:", err);
+          onLeave();
+        }
+      });
+
+    return () => {
+      ignore = true;
+      client.leave().catch((err) => console.error("Leave failed:", err));
+    };
+  }, [appId, channelName, client, onLeave]);
+
+  useEffect(() => {
+    if (!client) return;
 
     client.enableAudioVolumeIndicator();
 
     const handleVolumeIndicator = (
       volumes: Array<{ level: number; uid: string | number }>
     ) => {
-      if (isManualFocus) return;
-
       const loudest = getLoudest(volumes);
 
       if (loudest && loudest.level > 25) {
-        if (loudest.uid === 0 || loudest.uid === localUid) {
-          setFocusedUid("local");
-        } else {
-          setFocusedUid(loudest.uid);
+        const targetUid =
+          loudest.uid === 0 || loudest.uid === localUid ? "local" : loudest.uid;
+        setSpeakingUid(targetUid);
+        if (!isManualFocus) {
+          setFocusedUid(targetUid);
         }
       }
     };
@@ -106,32 +213,7 @@ export const VideoCall = ({
     return () => {
       client.off("volume-indicator", handleVolumeIndicator);
     };
-  }, [client, activeConnection, isManualFocus, localUid]);
-
-  const toggleFullscreen = () => {
-    if (!containerRef.current) return;
-
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch((err) => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
+  }, [client, isManualFocus, localUid]);
 
   const renderSmallVideo = (isLocal: boolean, user?: IAgoraRTCRemoteUser) => {
     if (!isLocal && !user) return null;
@@ -139,6 +221,9 @@ export const VideoCall = ({
     const isFocused = isLocal
       ? effectiveFocusedUid === "local"
       : effectiveFocusedUid === user?.uid;
+    const isSpeaking = isLocal
+      ? speakingUid === "local"
+      : speakingUid === user?.uid;
 
     if (isFocused) return null;
 
@@ -156,18 +241,20 @@ export const VideoCall = ({
           background: "#1c1f2e",
           borderRadius: "16px",
           overflow: "hidden",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
+          border: isSpeaking
+            ? "2px solid #3b82f6"
+            : "1px solid rgba(255, 255, 255, 0.08)",
           position: "relative",
           cursor: "pointer",
-          boxShadow:
-            "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+          boxShadow: isSpeaking
+            ? "0 0 0 3px rgba(59,130,246,0.25), 0 10px 15px -3px rgba(0,0,0,0.3)"
+            : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
         }}
         className="video-card-small"
       >
         {isLocal ? (
           <LocalUser
-            audioTrack={localMicrophoneTrack}
-            videoTrack={localCameraTrack}
+            videoTrack={(videoTrack as any) || undefined}
             micOn={micOn}
             cameraOn={cameraOn}
             cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
@@ -216,8 +303,7 @@ export const VideoCall = ({
     if (effectiveFocusedUid === "local") {
       return (
         <LocalUser
-          audioTrack={localMicrophoneTrack}
-          videoTrack={localCameraTrack}
+          videoTrack={(videoTrack as any) || undefined}
           micOn={micOn}
           cameraOn={cameraOn}
           cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
@@ -273,10 +359,7 @@ export const VideoCall = ({
   };
 
   return (
-    <div
-      ref={containerRef}
-      className={`video-call-container ${isFullscreen ? "fullscreen" : ""}`}
-    >
+    <>
       <div className="video-call-top-list custom-scrollbar">
         {renderSmallVideo(true)}
         {remoteUsers.map((user) => renderSmallVideo(false, user))}
@@ -312,8 +395,138 @@ export const VideoCall = ({
           <div className="video-channel-name">{channelName}</div>
         </div>
       </div>
+    </>
+  );
+};
 
-      <div className="video-controls-wrapper">
+export const VideoCall = ({
+  appId,
+  channelName,
+  canRecord = false,
+}: {
+  appId: string;
+  channelName: string;
+  canRecord?: boolean;
+}) => {
+  const router = useRouter();
+  const [activeConnection, setActiveConnection] = useState(false);
+  const [micOn, setMicOn] = useState(true);
+  const [cameraOn, setCameraOn] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const hideTimerRef = useRef<number | null>(null);
+
+  const { isRecording, startRecording, stopRecording } = useScreenRecorder({
+    channelName,
+  });
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const isMobileLandscape = () =>
+      window.matchMedia("(orientation: landscape)").matches &&
+      Math.max(window.innerWidth, window.innerHeight) <= 900;
+
+    const resetHideTimer = () => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+      if (isMobileLandscape()) {
+        setControlsVisible(true);
+        hideTimerRef.current = window.setTimeout(() => {
+          setControlsVisible(false);
+        }, 3000);
+      } else {
+        setControlsVisible(true);
+      }
+    };
+
+    const handlePointer = () => {
+      resetHideTimer();
+    };
+
+    resetHideTimer();
+
+    const el = containerRef.current;
+    window.addEventListener("resize", handlePointer);
+    if (el) el.addEventListener("pointerdown", handlePointer);
+
+    return () => {
+      window.removeEventListener("resize", handlePointer);
+      if (el) el.removeEventListener("pointerdown", handlePointer);
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`video-call-container ${isFullscreen ? "fullscreen" : ""}`}
+    >
+      {activeConnection ? (
+        <ActiveCallSession
+          appId={appId}
+          channelName={channelName}
+          micOn={micOn}
+          cameraOn={cameraOn}
+          onLeave={() => setActiveConnection(false)}
+        />
+      ) : (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            textAlign: "center",
+            justifyContent: "center",
+            color: "rgba(255,255,255,0.5)",
+            flexDirection: "column",
+            gap: "16px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "64px",
+              opacity: 0.2,
+            }}
+          >
+            <VideoCameraOutlined />
+          </div>
+          <div>Нажмите кнопку подключения, чтобы войти в трансляцию</div>
+        </div>
+      )}
+
+      <div
+        className={`video-controls-wrapper ${controlsVisible ? "" : "hidden"}`}
+      >
         <div className="video-call-controls">
           <Space size="middle">
             <Tooltip title={micOn ? "Выключить микрофон" : "Включить микрофон"}>
