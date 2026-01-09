@@ -28,8 +28,13 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import type { IAgoraRTCRemoteUser } from "agora-rtc-react";
-import { useScreenRecorder } from "@/hooks/useScreenRecorder";
+import {
+  joinRoom,
+  subscribeToParticipants,
+  Participant,
+} from "@/lib/services/roomService";
 import { getLoudest } from "@/lib/utils/audio";
+import { useScreenRecorder } from "@/hooks/useScreenRecorder";
 
 const ActiveCallSession = ({
   appId,
@@ -37,18 +42,36 @@ const ActiveCallSession = ({
   micOn,
   cameraOn,
   onLeave,
+  roomId,
+  user,
 }: {
   appId: string;
   channelName: string;
   micOn: boolean;
   cameraOn: boolean;
   onLeave: () => void;
+  roomId: string;
+  user: any;
 }) => {
   const client = useRTCClient();
   const [localUid, setLocalUid] = useState<string | number | null>(null);
   const [focusedUid, setFocusedUid] = useState<string | number>("local");
   const [isManualFocus, setIsManualFocus] = useState(false);
   const [speakingUid, setSpeakingUid] = useState<string | number | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToParticipants(roomId, (users) => {
+      setParticipants(users);
+    });
+    return () => unsubscribe();
+  }, [roomId]);
+
+  const getParticipantName = (uid: string | number) => {
+    if (uid === "local" || uid === localUid) return "Вы";
+    const participant = participants.find((p) => p.agoraUid === uid);
+    return participant ? participant.displayName : `User ${uid}`;
+  };
 
   const [audioTrack, setAudioTrack] = useState<IMicrophoneAudioTrack | null>(
     null
@@ -63,14 +86,13 @@ const ActiveCallSession = ({
     let isMounted = true;
 
     const initTracks = async () => {
-      // Функция с повторными попытками для микрофона
       const createMicWithRetry = async (
         retries = 3,
         delay = 1000
       ): Promise<IMicrophoneAudioTrack> => {
         try {
           return await AgoraRTC.createMicrophoneAudioTrack({
-            encoderConfig: "speech_standard", // Используем стандартный профиль
+            encoderConfig: "speech_standard",
           });
         } catch (err: any) {
           if (
@@ -87,7 +109,6 @@ const ActiveCallSession = ({
         }
       };
 
-      // Инициализируем микрофон
       try {
         const audio = await createMicWithRetry();
         if (!isMounted) {
@@ -101,10 +122,21 @@ const ActiveCallSession = ({
         console.error("Failed to create audio track after retries:", error);
       }
 
-      // Инициализируем камеру
       try {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const encoderConfig = isMobile 
+          ? {
+              width: 720,
+              height: 1280,
+              frameRate: 15,
+              bitrateMin: 600,
+              bitrateMax: 1000,
+              orientationMode: "fixed_portrait" as const,
+            }
+          : "720p_1";
+
         const video = await AgoraRTC.createCameraVideoTrack({
-          encoderConfig: "720p_1",
+          encoderConfig,
         });
         if (!isMounted) {
           video.stop();
@@ -118,14 +150,12 @@ const ActiveCallSession = ({
       }
     };
 
-    // Запускаем инициализацию с небольшой задержкой для стабильности
     const timer = setTimeout(initTracks, 500);
 
     return () => {
       isMounted = false;
       clearTimeout(timer);
 
-      // Жесткая очистка треков из ref
       if (tracksRef.current.audio) {
         tracksRef.current.audio.stop();
         tracksRef.current.audio.close();
@@ -173,7 +203,17 @@ const ActiveCallSession = ({
     client
       .join(appId, channelName, null, null)
       .then((uid) => {
-        if (!ignore) setLocalUid(uid);
+        if (!ignore) {
+          setLocalUid(uid);
+          if (user.uid && user.displayName) {
+             joinRoom(roomId, {
+               uid: user.uid,
+               agoraUid: uid as number,
+               displayName: user.displayName,
+               photoURL: user.photoURL,
+             });
+          }
+        }
       })
       .catch((err) => {
         if (!ignore) {
@@ -186,7 +226,7 @@ const ActiveCallSession = ({
       ignore = true;
       client.leave().catch((err) => console.error("Leave failed:", err));
     };
-  }, [appId, channelName, client, onLeave]);
+  }, [appId, channelName, client, onLeave, roomId, user]);
 
   useEffect(() => {
     if (!client) return;
@@ -271,7 +311,7 @@ const ActiveCallSession = ({
                 fontSize: "10px",
               }}
             >
-              Вы
+              {getParticipantName("local")}
             </div>
           </LocalUser>
         ) : (
@@ -291,7 +331,7 @@ const ActiveCallSession = ({
                 fontSize: "10px",
               }}
             >
-              User {user!.uid}
+              {getParticipantName(user!.uid)}
             </div>
           </RemoteUser>
         )}
@@ -403,10 +443,14 @@ export const VideoCall = ({
   appId,
   channelName,
   canRecord = false,
+  roomId,
+  user
 }: {
   appId: string;
   channelName: string;
   canRecord?: boolean;
+  roomId: string;
+  user: any;
 }) => {
   const router = useRouter();
   const [activeConnection, setActiveConnection] = useState(false);
@@ -503,6 +547,8 @@ export const VideoCall = ({
           micOn={micOn}
           cameraOn={cameraOn}
           onLeave={() => setActiveConnection(false)}
+          roomId={roomId}
+          user={user}
         />
       ) : (
         <div
@@ -614,7 +660,7 @@ export const VideoCall = ({
             {canRecord && (
               <Tooltip
                 title={
-                  isRecording ? "Остановить запись" : "Записать трансляцию"
+                  isTouch ? null : isRecording ? "Остановить запись" : "Записать трансляцию"
                 }
               >
                 <Button

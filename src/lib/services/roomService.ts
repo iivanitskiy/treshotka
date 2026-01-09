@@ -12,16 +12,18 @@ export interface Room {
 
 export interface Participant {
   uid: string;
+  agoraUid?: number;
   displayName: string;
   photoURL?: string | null;
   joinedAt: Timestamp;
 }
 
-export const joinRoom = async (roomId: string, user: { uid: string, displayName: string, photoURL?: string | null }) => {
+export const joinRoom = async (roomId: string, user: { uid: string, agoraUid?: number, displayName: string, photoURL?: string | null }) => {
   try {
     const participantRef = doc(db, 'rooms', roomId, 'participants', user.uid);
     await setDoc(participantRef, {
       uid: user.uid,
+      agoraUid: user.agoraUid || null,
       displayName: user.displayName,
       photoURL: user.photoURL,
       joinedAt: serverTimestamp(),

@@ -2,7 +2,7 @@
 
 https://treshotka.vercel.app/
 
-Компактное приложение видеочата на Next.js 16, TypeScript, Redux Toolkit, Firebase, Agora и Ant Design.
+Компактное приложение видеочата на Next.js 16, TypeScript, Redux Toolkit, Firebase, Agora, Ant Design и RecordRTC.
 
 ## Быстрый старт
 - Установка: `npm install`

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import RecordRTC from 'recordrtc';
 
 interface UseScreenRecorderProps {
   channelName: string;
@@ -12,47 +13,31 @@ interface UseScreenRecorderReturn {
 
 export const useScreenRecorder = ({ channelName }: UseScreenRecorderProps): UseScreenRecorderReturn => {
   const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const recorderRef = useRef<RecordRTC | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: true
-      });
+        audio: true,
+        selfBrowserSurface: "include"
+      } as any);
       
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
+      streamRef.current = stream;
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
-      };
+      const recorder = new RecordRTC(stream, {
+        type: 'video',
+        mimeType: 'video/webm',
+        disableLogs: false,
+      });
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        document.body.appendChild(a);
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `recording-${channelName}-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        setIsRecording(false);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
+      recorder.startRecording();
+      recorderRef.current = recorder;
       setIsRecording(true);
       
       stream.getVideoTracks()[0].onended = () => {
-        if (mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
-        }
+        stopRecording();
       };
 
     } catch (err) {
@@ -61,8 +46,22 @@ export const useScreenRecorder = ({ channelName }: UseScreenRecorderProps): UseS
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
+    const recorder = recorderRef.current;
+    if (recorder) {
+      recorder.stopRecording(() => {
+        const blob = recorder.getBlob();
+        const fileName = `recording-${channelName}-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+        
+        RecordRTC.invokeSaveAsDialog(blob, fileName);
+        
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+        recorder.destroy();
+        recorderRef.current = null;
+        setIsRecording(false);
+      });
     }
   };
 

@@ -38,12 +38,22 @@ export default function RoomClient({
         displayName: user.displayName,
         photoURL: user.photoURL,
       });
+
+      const handleBeforeUnload = () => {
+        if (user.uid) {
+          leaveRoom(roomId, user.uid);
+        }
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        if (user.uid) {
+          leaveRoom(roomId, user.uid);
+        }
+      };
     }
-    return () => {
-      if (user.uid) {
-        leaveRoom(roomId, user.uid);
-      }
-    };
   }, [roomId, user.uid, user.displayName, user.photoURL]);
 
   if (!agoraAppId) return <div>Отсутствует Agora App ID в .env.local</div>;
@@ -62,6 +72,8 @@ export default function RoomClient({
             <VideoCall
               appId={agoraAppId}
               channelName={roomName}
+              roomId={roomId}
+              user={user}
               canRecord={canRecord}
             />
           </div>

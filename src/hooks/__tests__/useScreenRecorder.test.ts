@@ -1,20 +1,26 @@
 import { renderHook, act } from '@testing-library/react';
 import { useScreenRecorder } from '../useScreenRecorder';
+import RecordRTC from 'recordrtc';
 
-const mockMediaRecorder = {
-  start: jest.fn(),
-  stop: jest.fn(),
-  state: 'inactive',
-  ondataavailable: jest.fn(),
-  onstop: jest.fn(),
-};
+// Mock RecordRTC
+jest.mock('recordrtc', () => {
+  const mockRecordRTC = jest.fn().mockImplementation(() => ({
+    startRecording: jest.fn(),
+    stopRecording: jest.fn((cb) => cb && cb()),
+    getBlob: jest.fn(() => new Blob(['test'], { type: 'video/webm' })),
+    destroy: jest.fn(),
+    save: jest.fn(),
+  }));
+  // Add static method
+  (mockRecordRTC as any).invokeSaveAsDialog = jest.fn();
+  return mockRecordRTC;
+});
 
 const mockStream = {
   getTracks: jest.fn(() => [{ stop: jest.fn() }]),
   getVideoTracks: jest.fn(() => [{ onended: null }]),
 };
 
-global.MediaRecorder = jest.fn(() => mockMediaRecorder) as unknown as typeof MediaRecorder;
 Object.defineProperty(global.navigator, 'mediaDevices', {
   value: {
     getDisplayMedia: jest.fn(() => Promise.resolve(mockStream)),
@@ -22,10 +28,11 @@ Object.defineProperty(global.navigator, 'mediaDevices', {
   writable: true
 });
 
-global.URL.createObjectURL = jest.fn();
-global.URL.revokeObjectURL = jest.fn();
-
 describe('useScreenRecorder', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should initialize with isRecording false', () => {
     const { result } = renderHook(() => useScreenRecorder({ channelName: 'test' }));
     expect(result.current.isRecording).toBe(false);
@@ -40,8 +47,7 @@ describe('useScreenRecorder', () => {
 
     expect(result.current.isRecording).toBe(true);
     expect(global.navigator.mediaDevices.getDisplayMedia).toHaveBeenCalled();
-    expect(global.MediaRecorder).toHaveBeenCalled();
-    expect(mockMediaRecorder.start).toHaveBeenCalled();
+    expect(RecordRTC).toHaveBeenCalled();
   });
 
   it('should stop recording', async () => {
@@ -51,12 +57,13 @@ describe('useScreenRecorder', () => {
       await result.current.startRecording();
     });
 
-    mockMediaRecorder.state = 'recording';
-
     await act(async () => {
       result.current.stopRecording();
     });
 
-    expect(mockMediaRecorder.stop).toHaveBeenCalled();
+    const mockInstance = (RecordRTC as unknown as jest.Mock).mock.results[0].value;
+    expect(mockInstance.stopRecording).toHaveBeenCalled();
+    expect(RecordRTC.invokeSaveAsDialog).toHaveBeenCalled();
+    expect(result.current.isRecording).toBe(false);
   });
 });

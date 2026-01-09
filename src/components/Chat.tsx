@@ -20,7 +20,7 @@ export default function Chat({
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const user = useAppSelector((state) => state.auth);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToMessages(roomId, (msgs) => {
@@ -30,7 +30,12 @@ export default function Chat({
   }, [roomId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages]);
 
   const handleSendMessage = async () => {
@@ -54,6 +59,7 @@ export default function Chat({
       }}
     >
       <div
+        ref={chatContainerRef}
         className="custom-scrollbar"
         style={{
           flex: 1,
@@ -119,7 +125,6 @@ export default function Chat({
             </div>
           );
         })}
-        <div ref={messagesEndRef} />
       </div>
 
       <div style={{ padding: "16px", paddingTop: "8px" }}>
