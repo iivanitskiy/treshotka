@@ -416,6 +416,11 @@ export const VideoCall = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef<number | null>(null);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    setIsTouch("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  }, []);
 
   const { isRecording, startRecording, stopRecording } = useScreenRecorder({
     channelName,
@@ -529,7 +534,15 @@ export const VideoCall = ({
       >
         <div className="video-call-controls">
           <Space size="middle">
-            <Tooltip title={micOn ? "Выключить микрофон" : "Включить микрофон"}>
+            <Tooltip
+              title={
+                isTouch
+                  ? null
+                  : micOn
+                  ? "Выключить микрофон"
+                  : "Включить микрофон"
+              }
+            >
               <Button
                 shape="circle"
                 icon={micOn ? <AudioOutlined /> : <AudioMutedOutlined />}
@@ -546,7 +559,11 @@ export const VideoCall = ({
               />
             </Tooltip>
 
-            <Tooltip title={cameraOn ? "Выключить камеру" : "Включить камеру"}>
+            <Tooltip
+              title={
+                isTouch ? null : cameraOn ? "Выключить камеру" : "Включить камеру"
+              }
+            >
               <Button
                 shape="circle"
                 icon={
@@ -569,7 +586,15 @@ export const VideoCall = ({
               />
             </Tooltip>
 
-            <Tooltip title={activeConnection ? "Отключиться" : "Подключиться"}>
+            <Tooltip
+              title={
+                isTouch
+                  ? null
+                  : activeConnection
+                  ? "Отключиться"
+                  : "Подключиться"
+              }
+            >
               <Button
                 type="primary"
                 shape="circle"
@@ -656,7 +681,7 @@ export const VideoCall = ({
               />
             </Tooltip>
 
-            <Tooltip title="На главную">
+            <Tooltip title={isTouch ? null : "На главную"}>
               <Button
                 shape="circle"
                 icon={<HomeOutlined />}
