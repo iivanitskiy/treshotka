@@ -342,28 +342,30 @@ const ActiveCallSession = ({
   const renderFocusedVideo = () => {
     if (effectiveFocusedUid === "local") {
       return (
-        <LocalUser
-          videoTrack={(videoTrack as any) || undefined}
-          micOn={micOn}
-          cameraOn={cameraOn}
-          cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: "16px",
-              right: "16px",
-              background: "rgba(0, 0, 0, 0.6)",
-              color: "white",
-              padding: "4px 12px",
-              borderRadius: "9999px",
-              fontSize: "12px",
-              backdropFilter: "blur(4px)",
-            }}
+        <div className="agora-video-wrapper" style={{ width: "100%", height: "100%" }}>
+          <LocalUser
+            videoTrack={(videoTrack as any) || undefined}
+            micOn={micOn}
+            cameraOn={cameraOn}
+            cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
           >
-            Вы (Main)
-          </div>
-        </LocalUser>
+            <div
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                background: "rgba(0, 0, 0, 0.6)",
+                color: "white",
+                padding: "4px 12px",
+                borderRadius: "9999px",
+                fontSize: "12px",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              Вы
+            </div>
+          </LocalUser>
+        </div>
       );
     }
 
@@ -372,26 +374,28 @@ const ActiveCallSession = ({
     );
     if (remoteUser) {
       return (
-        <RemoteUser
-          user={remoteUser}
-          cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: "16px",
-              right: "16px",
-              background: "rgba(0, 0, 0, 0.6)",
-              color: "white",
-              padding: "4px 12px",
-              borderRadius: "9999px",
-              fontSize: "12px",
-              backdropFilter: "blur(4px)",
-            }}
+        <div className="agora-video-wrapper" style={{ width: "100%", height: "100%" }}>
+          <RemoteUser
+            user={remoteUser}
+            cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
           >
-            Пользователь {remoteUser.uid}
-          </div>
-        </RemoteUser>
+            <div
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                background: "rgba(0, 0, 0, 0.6)",
+                color: "white",
+                padding: "4px 12px",
+                borderRadius: "9999px",
+                fontSize: "12px",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              {getParticipantName(remoteUser.uid)}
+            </div>
+          </RemoteUser>
+        </div>
       );
     }
 
@@ -461,9 +465,15 @@ export const VideoCall = ({
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef<number | null>(null);
   const [isTouch, setIsTouch] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsTouch("ontouchstart" in window || navigator.maxTouchPoints > 0);
+    setIsMobile(
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      )
+    );
   }, []);
 
   const { isRecording, startRecording, stopRecording } = useScreenRecorder({
@@ -496,16 +506,18 @@ export const VideoCall = ({
   }, []);
 
   useEffect(() => {
-    const isMobileLandscape = () =>
-      window.matchMedia("(orientation: landscape)").matches &&
-      Math.max(window.innerWidth, window.innerHeight) <= 900;
+    const shouldAutoHide = () =>
+      (Math.max(window.innerWidth, window.innerHeight) <= 1024 ||
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0) &&
+      window.matchMedia("(orientation: landscape)").matches;
 
     const resetHideTimer = () => {
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
       }
-      if (isMobileLandscape()) {
+      if (shouldAutoHide()) {
         setControlsVisible(true);
         hideTimerRef.current = window.setTimeout(() => {
           setControlsVisible(false);
@@ -657,7 +669,7 @@ export const VideoCall = ({
               />
             </Tooltip>
 
-            {canRecord && (
+            {canRecord && !isMobile && (
               <Tooltip
                 title={
                   isTouch ? null : isRecording ? "Остановить запись" : "Записать трансляцию"
