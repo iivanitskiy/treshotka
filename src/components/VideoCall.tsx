@@ -59,6 +59,83 @@ const ActiveCallSession = ({
   const [isManualFocus, setIsManualFocus] = useState(false);
   const [speakingUid, setSpeakingUid] = useState<string | number | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const [audioTrack, setAudioTrack] = useState<IMicrophoneAudioTrack | null>(
+    null
+  );
+  const [videoTrack, setVideoTrack] = useState<ICameraVideoTrack | null>(null);
+  const tracksRef = useRef<{
+    audio: IMicrophoneAudioTrack | null;
+    video: ICameraVideoTrack | null;
+  }>({ audio: null, video: null });
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    const checkMobile = () => {
+      setIsMobile(
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        )
+      );
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
+  useEffect(() => {
+    const shouldAutoHide = () =>
+      (Math.max(window.innerWidth, window.innerHeight) <= 1024 ||
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0) &&
+      window.matchMedia("(orientation: landscape)").matches;
+
+    const resetHideTimer = () => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+      if (shouldAutoHide()) {
+        setControlsVisible(true);
+        hideTimerRef.current = window.setTimeout(() => {
+          setControlsVisible(false);
+        }, 3000);
+      } else {
+        setControlsVisible(true);
+      }
+    };
+
+    const handlePointer = () => {
+      resetHideTimer();
+    };
+
+    resetHideTimer();
+
+    window.addEventListener("resize", handlePointer);
+    window.addEventListener("pointerdown", handlePointer);
+    window.addEventListener("touchstart", handlePointer);
+
+    return () => {
+      window.removeEventListener("resize", handlePointer);
+      window.removeEventListener("pointerdown", handlePointer);
+      window.removeEventListener("touchstart", handlePointer);
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeToParticipants(roomId, (users) => {
@@ -73,14 +150,7 @@ const ActiveCallSession = ({
     return participant ? participant.displayName : `User ${uid}`;
   };
 
-  const [audioTrack, setAudioTrack] = useState<IMicrophoneAudioTrack | null>(
-    null
-  );
-  const [videoTrack, setVideoTrack] = useState<ICameraVideoTrack | null>(null);
-  const tracksRef = useRef<{
-    audio: IMicrophoneAudioTrack | null;
-    video: ICameraVideoTrack | null;
-  }>({ audio: null, video: null });
+  const hideTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -404,7 +474,7 @@ const ActiveCallSession = ({
 
   return (
     <>
-      <div className="video-call-top-list custom-scrollbar">
+      <div className={`video-call-top-list custom-scrollbar ${isFullscreen && isMobile && !controlsVisible ? "hidden" : ""}`}>
         {renderSmallVideo(true)}
         {remoteUsers.map((user) => renderSmallVideo(false, user))}
       </div>
@@ -712,7 +782,9 @@ export const VideoCall = ({
 
             <Tooltip
               title={
-                isFullscreen
+                isTouch
+                  ? null
+                  : isFullscreen
                   ? "Выйти из полноэкранного режима"
                   : "На весь экран"
               }

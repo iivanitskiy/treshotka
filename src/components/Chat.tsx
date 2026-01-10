@@ -22,6 +22,19 @@ export default function Chat({
   const user = useAppSelector((state) => state.auth);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      // Check for width OR landscape mobile (small height + landscape orientation)
+      const isLandscapeMobile = window.matchMedia("(max-height: 500px) and (orientation: landscape)").matches;
+      setIsMobile(window.innerWidth <= 768 || isLandscapeMobile);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   useEffect(() => {
     const unsubscribe = subscribeToMessages(roomId, (msgs) => {
       setMessages(msgs);
@@ -64,10 +77,10 @@ export default function Chat({
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "16px",
+          padding: isMobile ? "12px 12px 0 12px" : "16px",
           display: "flex",
           flexDirection: "column",
-          gap: "16px",
+          gap: isMobile ? "10px" : "16px",
         }}
       >
         {messages.map((msg) => {
@@ -85,7 +98,7 @@ export default function Chat({
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  maxWidth: "85%",
+                  maxWidth: isMobile ? "90%" : "85%",
                   alignItems: isMe ? "flex-end" : "flex-start",
                 }}
               >
@@ -94,24 +107,26 @@ export default function Chat({
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    marginBottom: "4px",
+                    marginBottom: "2px",
                     paddingLeft: "4px",
                     paddingRight: "4px",
                   }}
                 >
                   {!isMe && (
-                    <Text style={{ fontSize: "12px", color: "#9ca3af" }}>
+                    <Text style={{ fontSize: isMobile ? "10px" : "12px", color: "#9ca3af" }}>
                       {msg.senderName}
                     </Text>
                   )}
                 </div>
                 <div
                   style={{
-                    padding: "10px 16px",
+                    padding: isMobile ? "8px 12px" : "10px 16px",
                     borderRadius: "16px",
                     backdropFilter: "blur(4px)",
                     background: isMe ? "#3b82f6" : "rgba(255, 255, 255, 0.1)",
                     color: isMe ? "white" : "#f3f4f6",
+                    fontSize: isMobile ? "14px" : "14px",
+                    lineHeight: isMobile ? "1.4" : "1.5",
                     borderBottomRightRadius: isMe ? "2px" : "16px",
                     borderBottomLeftRadius: isMe ? "16px" : "2px",
                     border: isMe
@@ -127,7 +142,7 @@ export default function Chat({
         })}
       </div>
 
-      <div style={{ padding: "16px", paddingTop: "8px" }}>
+      <div style={{ padding: isMobile ? "10px 12px" : "16px", paddingTop: isMobile ? "8px" : "8px" }}>
         <div
           className="chat-input"
           style={{
@@ -147,7 +162,8 @@ export default function Chat({
               background: "rgba(255, 255, 255, 0.05)",
               border: "1px solid rgba(255, 255, 255, 0.1)",
               color: "white",
-              height: "40px",
+              height: isMobile ? "36px" : "40px",
+              fontSize: isMobile ? "13px" : "14px",
             }}
           />
           <Button
@@ -156,7 +172,13 @@ export default function Chat({
             icon={<SendOutlined />}
             onClick={handleSendMessage}
             disabled={!newMessage.trim()}
-            style={{ background: "white", color: "#3b82f6" }}
+            style={{ 
+              background: "white", 
+              color: "#3b82f6",
+              width: isMobile ? "36px" : "32px",
+              height: isMobile ? "36px" : "32px",
+              minWidth: isMobile ? "36px" : "32px",
+            }}
           />
         </div>
       </div>
