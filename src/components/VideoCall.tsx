@@ -126,12 +126,12 @@ const ActiveCallSession = ({
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const encoderConfig = isMobile 
           ? {
-              width: 720,
-              height: 1280,
+              width: 1280,
+              height: 720,
               frameRate: 15,
               bitrateMin: 600,
               bitrateMax: 1000,
-              orientationMode: "fixed_portrait" as const,
+              orientationMode: "adaptative" as const,
             }
           : "720p_1";
 
