@@ -296,7 +296,7 @@ body {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 500px) and (orientation: landscape) {
   .room-layout {
     display: block !important;
     position: relative !important;
@@ -311,7 +311,7 @@ body {
     width: 100% !important;
     height: 45% !important;
     padding: 12px !important;
-    padding-bottom: 6px !important;
+    padding-bottom: 12px !important;
     overflow: hidden !important;
     z-index: 10 !important;
     display: block !important;
@@ -326,9 +326,43 @@ body {
     min-width: 100% !important;
     max-width: 100% !important;
     height: 55% !important;
-    padding-top: 6px !important;
+    padding-top: 0 !important;
     z-index: 10 !important;
     display: block !important;
+  }
+
+  /* Adjust height split for landscape to give more space to content side-by-side if needed, 
+     BUT user asked for SAME paddings/etc. 
+     If we keep 45/55 split in landscape, it might be too short vertically.
+     However, let's strictly follow "same indents, padding, tabs height".
+     For landscape mobile, maybe we want side-by-side?
+     If I change to side-by-side, I deviate from "same as portrait" structure but keep "same styles".
+     Let's stick to the mobile styles requested.
+     If the user wants side-by-side, they would ask.
+     Actually, let's make sure the LAYOUT adapts for landscape slightly while keeping styling.
+  */
+
+  .room-sider .glass-panel {
+    border-radius: 20px !important;
+    border: none !important;
+    background: rgba(20, 23, 35, 0.95) !important;
+  }
+
+  /* Compact tabs for mobile */
+  .room-sider .ant-tabs-nav {
+    margin: 3px !important;
+    padding: 0 12px !important;
+    height: 35px !important;
+  }
+
+  .room-sider .ant-tabs-tab {
+    padding: 8px 0 !important;
+    margin: 0 12px 0 0 !important;
+    font-size: 13px !important;
+  }
+
+  .room-sider .ant-tabs-content-holder {
+    height: calc(100% - 40px) !important;
   }
 
   .video-wrapper {
@@ -423,6 +457,54 @@ body {
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
+  /* Override layout to be side-by-side for landscape but keeping compact styles */
+  .room-layout {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+
+  .room-content {
+    position: relative !important;
+    width: 50% !important;
+    height: 100% !important;
+    padding-right: 0 !important;
+  }
+
+  .room-sider {
+    position: relative !important;
+    width: 50% !important;
+    min-width: 50% !important;
+    max-width: 50% !important;
+    height: 100% !important;
+    padding-left: 0 !important;
+  }
+
+  .room-sider .glass-panel {
+    border-radius: 20px 0 0 20px !important;
+  }
+
+  .video-call-container.fullscreen .video-call-top-list {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    transition: transform 0.3s ease;
+  }
+
+  .video-call-container.fullscreen .video-call-top-list.hidden {
+    transform: translateY(-100%);
+  }
+
+  .video-call-container.fullscreen .video-player-container {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+  
   .auth-stack {
     padding-top: 3% !important;
   }
@@ -519,7 +601,7 @@ body {
   }
 
   .custom-tabs .ant-tabs-nav {
-    height: 50px !important;
+    height: 30px !important;
   }
 
   .video-card-small {
