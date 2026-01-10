@@ -207,12 +207,23 @@ body {
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 16/9;
-  background: #0f111a;
-  border-radius: 16px;
+  background: #000;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   position: relative;
+}
+
+.video-player-container video {
+  object-fit: contain !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: #000;
+}
+
+.agora-video-wrapper > div {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .video-controls-wrapper {
@@ -220,12 +231,8 @@ body {
   justify-content: center;
   z-index: 20;
   width: 100%;
-  padding: 16px 0 24px 0; /* Отступы сверху и снизу */
-  background: transparent; /* Или #0f111a если нужно перекрыть фон */
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.video-controls-wrapper {
+  padding: 16px 0 24px 0;
+  background: transparent;
   transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1),
   transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -365,8 +372,7 @@ body {
     max-width: 100%;
     max-height: 100%;
     aspect-ratio: 9/16;
-    background: #0f111a;
-    border-radius: 0;
+    background: #000;
     overflow: hidden;
     border: none;
     box-shadow: none;
@@ -374,7 +380,7 @@ body {
   }
 
   .video-player-container video {
-    object-fit: cover !important;
+    object-fit: contain !important;
   }
 
   .video-controls-wrapper {
@@ -470,23 +476,27 @@ body {
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 16/9;
-  background: #0f111a;
-  border-radius: 32px;
+  background: #000;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   position: relative;
 }
 
-.video-call-container.fullscreen .video-player-container {
-  width: min(100vw, calc(100vh * 16 / 9));
-  aspect-ratio: 16/9;
-}
+.video-call-container.fullscreen {
+    background: #000 !important;
+  }
+
+  .video-call-container.fullscreen .video-player-container {
+    width: min(100vw, calc(100vh * 16 / 9));
+    aspect-ratio: 16/9;
+  }
 
 .video-player-container video {
-  width: 100%;
-  height: 100%;
-}
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important;
+  }
 
   .video-call-top-list {
     height: 50px !important;
