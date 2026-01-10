@@ -465,9 +465,15 @@ export const VideoCall = ({
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef<number | null>(null);
   const [isTouch, setIsTouch] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsTouch("ontouchstart" in window || navigator.maxTouchPoints > 0);
+    setIsMobile(
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      )
+    );
   }, []);
 
   const { isRecording, startRecording, stopRecording } = useScreenRecorder({
@@ -663,7 +669,7 @@ export const VideoCall = ({
               />
             </Tooltip>
 
-            {canRecord && (
+            {canRecord && !isMobile && (
               <Tooltip
                 title={
                   isTouch ? null : isRecording ? "Остановить запись" : "Записать трансляцию"
