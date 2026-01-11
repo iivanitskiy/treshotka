@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import RecordRTC, { StereoAudioRecorder } from 'recordrtc';
 
 interface UseAudioRecorderProps {
@@ -16,57 +16,60 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
   const recorderRef = useRef<RecordRTC | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const startAudioRecording = async () => {
+  const startAudioRecording = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: false
       });
       
-      streamRef.current = stream;
+      streamRef.current = mediaStream;
 
-      const recorder = new RecordRTC(stream, {
-        type: 'audio',
+      // Используем StereoAudioRecorder для WebM, чтобы получить более надежную запись
+      const recorder = new RecordRTC(mediaStream, {
+        type: "audio",
+        mimeType: "audio/webm",
         recorderType: StereoAudioRecorder,
-        mimeType: 'audio/webm',
-        numberOfAudioChannels: 2,
-        checkForInactiveTracks: true,
-        bufferSize: 16384,
-        disableLogs: false,
+        numberOfAudioChannels: 1, // Моно для уменьшения размера
+        desiredSampRate: 44100,
       });
 
       recorder.startRecording();
       recorderRef.current = recorder;
       setIsAudioRecording(true);
-      
-      stream.getAudioTracks()[0].onended = () => {
-        stopAudioRecording();
-      };
-
-    } catch (err) {
-      console.error("Ошибка записи аудио", err);
+    } catch (error) {
+      console.error("Ошибка при старте записи аудио:", error);
     }
-  };
+  }, []);
 
-  const stopAudioRecording = () => {
+  const stopAudioRecording = useCallback(() => {
     const recorder = recorderRef.current;
     if (recorder) {
       recorder.stopRecording(() => {
         const blob = recorder.getBlob();
-        const fileName = `audio-recording-${channelName}-${new Date().toISOString().replace(/[:.]/g, '-')}.wav`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style.display = "none";
+        a.href = url;
+        // Генерируем имя файла с текущей датой и временем
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        a.download = `audio-recording-${timestamp}.webm`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
         
-        RecordRTC.invokeSaveAsDialog(blob, fileName);
-        
+        // Очистка
+        recorder.destroy();
+        recorderRef.current = null;
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
         }
-        recorder.destroy();
-        recorderRef.current = null;
         setIsAudioRecording(false);
       });
     }
-  };
+  }, []);
 
   return {
     isAudioRecording,

@@ -592,13 +592,19 @@ body {
     width: min(100vw, calc(100vh * 9 / 16));
     aspect-ratio: 9/16;
   }
-}
-
-.video-call-top-list {
+  .video-call-top-list {
     height: 50px !important;
     padding: 2px 4px !important;
-    min-height: 50px !important;
   }
+}
+
+.audio-rec-btn.mobile:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.audio-rec-btn.mobile.recording:hover {
+  background: rgba(59, 171, 246, 0.336) !important;
+}
 
   .custom-tabs .ant-tabs-nav {
     height: 30px !important;

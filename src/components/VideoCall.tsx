@@ -772,6 +772,9 @@ export const VideoCall = ({
                 }
               >
                 <Button
+                  className={`audio-rec-btn ${isMobile ? "mobile" : ""} ${
+                    isAudioRecording ? "recording" : ""
+                  }`}
                   shape="circle"
                   icon={
                     isRecording ? (
