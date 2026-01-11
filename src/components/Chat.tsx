@@ -26,7 +26,6 @@ export default function Chat({
 
   useEffect(() => {
     const checkMobile = () => {
-      // Check for width OR landscape mobile (small height + landscape orientation)
       const isLandscapeMobile = window.matchMedia("(max-height: 500px) and (orientation: landscape)").matches;
       setIsMobile(window.innerWidth <= 768 || isLandscapeMobile);
     };
@@ -58,7 +57,7 @@ export default function Chat({
       await sendMessage(roomId, newMessage, user.uid, user.displayName);
       setNewMessage("");
     } catch (error) {
-      console.error("Failed to send message", error);
+      console.error("Ошибка при отправке сообщения", error);
     }
   };
 

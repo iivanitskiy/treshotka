@@ -24,7 +24,7 @@ export default function AuthProvider({
             role = userDoc.data().role as "admin" | "user";
           }
         } catch (error) {
-          console.error("Error fetching user role:", error);
+          console.error("Ошибка при выборе роли пользователя:", error);
         }
 
         dispatch(

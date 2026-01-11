@@ -29,7 +29,7 @@ export const joinRoom = async (roomId: string, user: { uid: string, agoraUid?: n
       joinedAt: serverTimestamp(),
     });
   } catch (error) {
-    console.error('Error joining room: ', error);
+    console.error('Ошибка при присоединении к комнате: ', error);
   }
 };
 
@@ -38,7 +38,7 @@ export const leaveRoom = async (roomId: string, userId: string) => {
     const participantRef = doc(db, 'rooms', roomId, 'participants', userId);
     await deleteDoc(participantRef);
   } catch (error) {
-    console.error('Error leaving room: ', error);
+    console.error('Ошибка при выходе из комнаты: ', error);
   }
 };
 
@@ -57,7 +57,7 @@ export const deleteRoom = async (roomId: string) => {
   try {
     await deleteDoc(doc(db, 'rooms', roomId));
   } catch (error) {
-    console.error('Error deleting document: ', error);
+    console.error('Ошибка при удалении комнаты: ', error);
     throw error;
   }
 };
@@ -73,7 +73,7 @@ export const getRoom = async (roomId: string): Promise<Room | null> => {
       return null;
     }
   } catch (error) {
-    console.error("Error getting document:", error);
+    console.error("Ошибка при получении комнаты:", error);
     return null;
   }
 };
@@ -91,7 +91,7 @@ export const createRoom = async (name: string, userId: string, userName: string,
     const docRef = await addDoc(collection(db, 'rooms'), roomData);
     return docRef.id;
   } catch (error) {
-    console.error('Error adding document: ', error);
+    console.error('Ошибка при создании комнаты: ', error);
     throw error;
   }
 };
