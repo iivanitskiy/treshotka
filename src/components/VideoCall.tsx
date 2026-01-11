@@ -13,7 +13,7 @@ import AgoraRTC, {
   IMicrophoneAudioTrack,
 } from "agora-rtc-react";
 import { useState, useEffect, useRef } from "react";
-import { Button, Tooltip, Space } from "antd";
+import { Button, Tooltip, Space, Image } from "antd";
 import {
   AudioOutlined,
   AudioMutedOutlined,
@@ -35,6 +35,7 @@ import {
 } from "@/lib/services/roomService";
 import { getLoudest } from "@/lib/utils/audio";
 import { useScreenRecorder } from "@/hooks/useScreenRecorder";
+import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 
 const ActiveCallSession = ({
   appId,
@@ -86,11 +87,11 @@ const ActiveCallSession = ({
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
-      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener("resize", checkMobile);
     };
   }, []);
 
@@ -193,8 +194,11 @@ const ActiveCallSession = ({
       }
 
       try {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const encoderConfig = isMobile 
+        const isMobile =
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+          );
+        const encoderConfig = isMobile
           ? {
               width: 1280,
               height: 720,
@@ -236,13 +240,12 @@ const ActiveCallSession = ({
         tracksRef.current.video.close();
         tracksRef.current.video = null;
       }
-      // Очищаем стейт
+
       setAudioTrack(null);
       setVideoTrack(null);
     };
   }, []);
 
-  // Управление состоянием (вкл/выкл) треков
   useEffect(() => {
     if (audioTrack) {
       audioTrack.setEnabled(micOn);
@@ -276,12 +279,12 @@ const ActiveCallSession = ({
         if (!ignore) {
           setLocalUid(uid);
           if (user.uid && user.displayName) {
-             joinRoom(roomId, {
-               uid: user.uid,
-               agoraUid: uid as number,
-               displayName: user.displayName,
-               photoURL: user.photoURL,
-             });
+            joinRoom(roomId, {
+              uid: user.uid,
+              agoraUid: uid as number,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+            });
           }
         }
       })
@@ -412,7 +415,10 @@ const ActiveCallSession = ({
   const renderFocusedVideo = () => {
     if (effectiveFocusedUid === "local") {
       return (
-        <div className="agora-video-wrapper" style={{ width: "100%", height: "100%" }}>
+        <div
+          className="agora-video-wrapper"
+          style={{ width: "100%", height: "100%" }}
+        >
           <LocalUser
             videoTrack={(videoTrack as any) || undefined}
             micOn={micOn}
@@ -444,7 +450,10 @@ const ActiveCallSession = ({
     );
     if (remoteUser) {
       return (
-        <div className="agora-video-wrapper" style={{ width: "100%", height: "100%" }}>
+        <div
+          className="agora-video-wrapper"
+          style={{ width: "100%", height: "100%" }}
+        >
           <RemoteUser
             user={remoteUser}
             cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
@@ -474,7 +483,11 @@ const ActiveCallSession = ({
 
   return (
     <>
-      <div className={`video-call-top-list custom-scrollbar ${isFullscreen && isMobile && !controlsVisible ? "hidden" : ""}`}>
+      <div
+        className={`video-call-top-list custom-scrollbar ${
+          isFullscreen && isMobile && !controlsVisible ? "hidden" : ""
+        }`}
+      >
         {renderSmallVideo(true)}
         {remoteUsers.map((user) => renderSmallVideo(false, user))}
       </div>
@@ -518,7 +531,7 @@ export const VideoCall = ({
   channelName,
   canRecord = false,
   roomId,
-  user
+  user,
 }: {
   appId: string;
   channelName: string;
@@ -549,6 +562,11 @@ export const VideoCall = ({
   const { isRecording, startRecording, stopRecording } = useScreenRecorder({
     channelName,
   });
+
+  const { isAudioRecording, startAudioRecording, stopAudioRecording } =
+    useAudioRecorder({
+      channelName,
+    });
 
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
@@ -689,7 +707,11 @@ export const VideoCall = ({
 
             <Tooltip
               title={
-                isTouch ? null : cameraOn ? "Выключить камеру" : "Включить камеру"
+                isTouch
+                  ? null
+                  : cameraOn
+                  ? "Выключить камеру"
+                  : "Включить камеру"
               }
             >
               <Button
@@ -742,7 +764,11 @@ export const VideoCall = ({
             {canRecord && !isMobile && (
               <Tooltip
                 title={
-                  isTouch ? null : isRecording ? "Остановить запись" : "Записать трансляцию"
+                  isTouch
+                    ? null
+                    : isRecording
+                    ? "Остановить запись"
+                    : "Записать трансляцию"
                 }
               >
                 <Button
@@ -776,6 +802,54 @@ export const VideoCall = ({
                     justifyContent: "center",
                   }}
                   onClick={isRecording ? stopRecording : startRecording}
+                />
+              </Tooltip>
+            )}
+
+            {user?.role === "admin" && (
+              <Tooltip
+                title={
+                  isAudioRecording
+                    ? "Остановить запись аудио"
+                    : "Записать аудио"
+                }
+              >
+                <Button
+                  shape="circle"
+                  icon={
+                    isAudioRecording ? (
+                      <StopOutlined />
+                    ) : (
+                      <Image
+                        src="/sound-rec.png"
+                        alt="Диктофон"
+                        preview={false}
+                        style={{
+                          width: "26px",
+                          height: "26px",
+                        }}
+                      />
+                    )
+                  }
+                  size="large"
+                  type="text"
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    border: "none",
+                    background: isAudioRecording
+                      ? "rgba(59, 171, 246, 0.336)"
+                      : "rgba(255, 255, 255, 0.1)",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onClick={
+                    isAudioRecording
+                      ? stopAudioRecording
+                      : startAudioRecording
+                  }
                 />
               </Tooltip>
             )}

@@ -41,7 +41,7 @@ export const useScreenRecorder = ({ channelName }: UseScreenRecorderProps): UseS
       };
 
     } catch (err) {
-      console.error("Error starting recording:", err);
+      console.error("Ошибка записи экрана:", err);
     }
   };
 

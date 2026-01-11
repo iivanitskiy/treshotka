@@ -18,7 +18,7 @@ export const sendMessage = async (roomId: string, text: string, senderId: string
       createdAt: serverTimestamp(),
     });
   } catch (error) {
-    console.error('Error sending message: ', error);
+    console.error('Ошибка при отправке сообщения: ', error);
     throw error;
   }
 };
