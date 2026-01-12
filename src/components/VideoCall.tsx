@@ -812,7 +812,9 @@ export const VideoCall = ({
             {user?.role === "admin" && (
               <Tooltip
                 title={
-                  isAudioRecording
+                  isMobile
+                    ? null
+                    : isAudioRecording
                     ? "Остановить запись аудио"
                     : "Записать аудио"
                 }

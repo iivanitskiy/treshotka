@@ -25,12 +25,11 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
       
       streamRef.current = mediaStream;
 
-      // Используем StereoAudioRecorder для WebM, чтобы получить более надежную запись
       const recorder = new RecordRTC(mediaStream, {
         type: "audio",
         mimeType: "audio/webm",
         recorderType: StereoAudioRecorder,
-        numberOfAudioChannels: 1, // Моно для уменьшения размера
+        numberOfAudioChannels: 1,
         desiredSampRate: 44100,
       });
 
@@ -52,14 +51,12 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
         document.body.appendChild(a);
         a.style.display = "none";
         a.href = url;
-        // Генерируем имя файла с текущей датой и временем
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
         a.download = `audio-recording-${timestamp}.webm`;
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
         
-        // Очистка
         recorder.destroy();
         recorderRef.current = null;
         if (streamRef.current) {
