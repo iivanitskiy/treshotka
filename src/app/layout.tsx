@@ -19,6 +19,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Трещотка",
   description: "Приложение для общения по видеосвязи",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/app-logo.png",
+    apple: "/app-logo.png",
+  },
+};
+
+export const viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
