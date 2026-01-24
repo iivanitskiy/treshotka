@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import RecordRTC, { StereoAudioRecorder } from 'recordrtc';
+import RecordRTC from 'recordrtc';
+import { useWakeLock } from './useWakeLock';
 
 interface UseAudioRecorderProps {
   channelName: string;
@@ -15,6 +16,9 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
   const [isAudioRecording, setIsAudioRecording] = useState(false);
   const recorderRef = useRef<RecordRTC | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Prevent screen sleep during recording
+  useWakeLock(isAudioRecording);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -54,9 +58,7 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
       const recorder = new RecordRTC(mediaStream, {
         type: "audio",
         mimeType: "audio/webm",
-        recorderType: StereoAudioRecorder,
         numberOfAudioChannels: 1,
-        desiredSampRate: 44100,
       });
 
       recorder.startRecording();
