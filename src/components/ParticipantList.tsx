@@ -21,34 +21,79 @@ export default function ParticipantList({ roomId }: { roomId: string }) {
   }, [roomId]);
 
   return (
-    <div className="participant-list-container">
-      <div className="participant-list-header">
-        <Text className="participant-list-title">
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "16px", paddingBottom: "8px" }}>
+        <Text
+          style={{
+            color: "white",
+            fontSize: "14px",
+            fontWeight: 500,
+            paddingLeft: "8px",
+          }}
+        >
           В сети ({participants.length})
         </Text>
       </div>
-      <div className="participant-list-scroll-area custom-scrollbar">
-        <div className="participant-list-content">
+      <div style={{ flex: 1, overflowY: "auto" }} className="custom-scrollbar">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            padding: "8px",
+            paddingTop: 0,
+            gap: "4px",
+          }}
+        >
           {participants.map((item) => (
             <div key={item.uid} className="participant-item">
               <Avatar
                 src={item.photoURL}
                 icon={<UserOutlined />}
-                className="participant-avatar-style"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2))",
+                  color: "#60a5fa",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  flexShrink: 0,
+                }}
                 size="large"
               />
-              <div className="participant-info">
-                <Text className="participant-name">
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "2px",
+                  overflow: "hidden",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {item.displayName}
                 </Text>
-                <Text className="participant-role">
+                <Text
+                  style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}
+                >
                   Участник
                 </Text>
               </div>
             </div>
           ))}
           {participants.length === 0 && (
-            <div className="empty-participants">
+            <div
+              style={{
+                padding: "32px",
+                textAlign: "center",
+                color: "#9ca3af",
+                fontSize: "14px",
+              }}
+            >
               Нет участников
             </div>
           )}

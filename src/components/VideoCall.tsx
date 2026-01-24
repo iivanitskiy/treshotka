@@ -306,7 +306,7 @@ const ActiveCallSession = ({
       ignore = true;
       client.leave().catch((err) => console.error("Leave failed:", err));
     };
-  }, [appId, channelName, client, onLeave, roomId, user]);
+  }, [appId, channelName, client, onLeave, roomId, user.uid, user.displayName, user.photoURL]);
 
   useEffect(() => {
     if (!client) return;
