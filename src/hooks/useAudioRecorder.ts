@@ -17,6 +17,18 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
   const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isAudioRecording) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isAudioRecording]);
+
+  useEffect(() => {
     return () => {
       if (recorderRef.current) {
         recorderRef.current.destroy();
@@ -68,8 +80,10 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
         a.download = `audio-recording-${timestamp}.webm`;
         a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
         
         recorder.destroy();
         recorderRef.current = null;

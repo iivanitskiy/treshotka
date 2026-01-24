@@ -23,9 +23,7 @@ export default function ParticipantList({ roomId }: { roomId: string }) {
   return (
     <div className="participant-list-container">
       <div className="participant-list-header">
-        <Text className="participant-list-title">
-          В сети ({participants.length})
-        </Text>
+        <Text className="participant-list-title">В сети ({participants.length})</Text>
       </div>
       <div className="participant-list-scroll-area custom-scrollbar">
         <div className="participant-list-content">
@@ -34,23 +32,17 @@ export default function ParticipantList({ roomId }: { roomId: string }) {
               <Avatar
                 src={item.photoURL}
                 icon={<UserOutlined />}
-                className="participant-avatar-style"
+                className="participant-avatar"
                 size="large"
               />
               <div className="participant-info">
-                <Text className="participant-name">
-                  {item.displayName}
-                </Text>
-                <Text className="participant-role">
-                  Участник
-                </Text>
+                <Text className="participant-name">{item.displayName}</Text>
+                <Text className="participant-role">Участник</Text>
               </div>
             </div>
           ))}
           {participants.length === 0 && (
-            <div className="empty-participants">
-              Нет участников
-            </div>
+            <div className="participant-empty">Нет участников</div>
           )}
         </div>
       </div>
