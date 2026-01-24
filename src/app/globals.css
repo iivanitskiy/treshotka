@@ -663,6 +663,67 @@ body {
   border-color: rgba(255, 255, 255, 0.05);
 }
 
+.participant-list-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.participant-list-header {
+  padding: 16px;
+  padding-bottom: 8px;
+}
+
+.participant-list-title {
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding-left: 8px;
+}
+
+.participant-list-content {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  padding-top: 0;
+  gap: 4px;
+}
+
+.participant-avatar {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2)) !important;
+  color: #60a5fa !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  flex-shrink: 0;
+}
+
+.participant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.participant-name {
+  color: white !important;
+  font-weight: 500 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.participant-role {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 12px !important;
+}
+
+.participant-empty {
+  padding: 32px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
 .room-card {
   display: flex;
   align-items: center;
