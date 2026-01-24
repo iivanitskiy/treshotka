@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import RecordRTC, { StereoAudioRecorder } from 'recordrtc';
 
 interface UseAudioRecorderProps {
@@ -16,7 +16,21 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
   const recorderRef = useRef<RecordRTC | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (recorderRef.current) {
+        recorderRef.current.destroy();
+        recorderRef.current = null;
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
   const startAudioRecording = useCallback(async () => {
+    if (isAudioRecording) return;
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -39,7 +53,7 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
     } catch (error) {
       console.error("Ошибка при старте записи аудио:", error);
     }
-  }, []);
+  }, [isAudioRecording]);
 
   const stopAudioRecording = useCallback(() => {
     const recorder = recorderRef.current;

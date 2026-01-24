@@ -121,20 +121,27 @@ const ActiveCallSession = ({
       resetHideTimer();
     };
 
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handlePointer, 200);
+    };
+
     resetHideTimer();
 
-    window.addEventListener("resize", handlePointer);
+    window.addEventListener("resize", handleResize);
     window.addEventListener("pointerdown", handlePointer);
     window.addEventListener("touchstart", handlePointer);
 
     return () => {
-      window.removeEventListener("resize", handlePointer);
+      window.removeEventListener("resize", handleResize);
       window.removeEventListener("pointerdown", handlePointer);
       window.removeEventListener("touchstart", handlePointer);
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
       }
+      clearTimeout(resizeTimeout);
     };
   }, []);
 
@@ -622,16 +629,25 @@ export const VideoCall = ({
     resetHideTimer();
 
     const el = containerRef.current;
-    window.addEventListener("resize", handlePointer);
+    
+    // Debounce resize to prevent excessive re-renders on mobile
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handlePointer, 200);
+    };
+
+    window.addEventListener("resize", handleResize);
     if (el) el.addEventListener("pointerdown", handlePointer);
 
     return () => {
-      window.removeEventListener("resize", handlePointer);
+      window.removeEventListener("resize", handleResize);
       if (el) el.removeEventListener("pointerdown", handlePointer);
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
       }
+      clearTimeout(resizeTimeout);
     };
   }, []);
 
