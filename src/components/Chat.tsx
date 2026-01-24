@@ -141,7 +141,12 @@ export default function Chat({
         })}
       </div>
 
-      <div style={{ padding: isMobile ? "10px 12px" : "16px", paddingTop: isMobile ? "8px" : "8px" }}>
+      <div style={{ 
+        paddingLeft: isMobile ? "12px" : "16px",
+        paddingRight: isMobile ? "12px" : "16px",
+        paddingBottom: isMobile ? "10px" : "16px",
+        paddingTop: "8px"
+      }}>
         <div
           className="chat-input"
           style={{
