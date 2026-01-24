@@ -281,7 +281,7 @@ const ActiveCallSession = ({
   useEffect(() => {
     let ignore = false;
     client
-      .join(appId, channelName, null, null)
+      .join(appId, roomId, null, null)
       .then((uid) => {
         if (!ignore) {
           setLocalUid(uid);
@@ -306,7 +306,7 @@ const ActiveCallSession = ({
       ignore = true;
       client.leave().catch((err) => console.error("Leave failed:", err));
     };
-  }, [appId, channelName, client, onLeave, roomId, user.uid, user.displayName, user.photoURL]);
+  }, [appId, client, onLeave, roomId, user.uid, user.displayName, user.photoURL]);
 
   useEffect(() => {
     if (!client) return;
