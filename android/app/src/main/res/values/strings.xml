@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Treshotka</string>
+    <string name="title_activity_main">Treshotka</string>
+    <string name="package_name">io.treshotka.app</string>
+    <string name="custom_url_scheme">io.treshotka.app</string>
+</resources>

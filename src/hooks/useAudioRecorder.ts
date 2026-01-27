@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import RecordRTC from 'recordrtc';
 import { useWakeLock } from './useWakeLock';
 
 interface UseAudioRecorderProps {
@@ -14,7 +13,8 @@ interface UseAudioRecorderReturn {
 
 export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAudioRecorderReturn => {
   const [isAudioRecording, setIsAudioRecording] = useState(false);
-  const recorderRef = useRef<RecordRTC | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
 
   // Prevent screen sleep during recording
@@ -34,9 +34,8 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
 
   useEffect(() => {
     return () => {
-      if (recorderRef.current) {
-        recorderRef.current.destroy();
-        recorderRef.current = null;
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
       }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -54,26 +53,25 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
       });
       
       streamRef.current = mediaStream;
+      chunksRef.current = [];
 
-      const recorder = new RecordRTC(mediaStream, {
-        type: "audio",
-        mimeType: "audio/webm",
-        numberOfAudioChannels: 1,
+      // Prefer standard codecs
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") 
+        ? "audio/webm;codecs=opus" 
+        : "audio/webm";
+
+      const recorder = new MediaRecorder(mediaStream, {
+        mimeType
       });
 
-      recorder.startRecording();
-      recorderRef.current = recorder;
-      setIsAudioRecording(true);
-    } catch (error) {
-      console.error("Ошибка при старте записи аудио:", error);
-    }
-  }, [isAudioRecording]);
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
+      };
 
-  const stopAudioRecording = useCallback(() => {
-    const recorder = recorderRef.current;
-    if (recorder) {
-      recorder.stopRecording(() => {
-        const blob = recorder.getBlob();
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         document.body.appendChild(a);
@@ -82,19 +80,34 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
         a.download = `audio-recording-${timestamp}.webm`;
         a.click();
+        
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
+          if (document.body.contains(a)) {
+            document.body.removeChild(a);
+          }
         }, 100);
-        
-        recorder.destroy();
-        recorderRef.current = null;
+
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
         }
         setIsAudioRecording(false);
-      });
+        chunksRef.current = [];
+      };
+
+      recorder.start(1000); // Collect chunks every second
+      mediaRecorderRef.current = recorder;
+      setIsAudioRecording(true);
+    } catch (error) {
+      console.error("Ошибка при старте записи аудио:", error);
+    }
+  }, [isAudioRecording]);
+
+  const stopAudioRecording = useCallback(() => {
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== 'inactive') {
+      recorder.stop();
     }
   }, []);
 

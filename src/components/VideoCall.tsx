@@ -13,7 +13,7 @@ import AgoraRTC, {
   IMicrophoneAudioTrack,
 } from "agora-rtc-react";
 import { useState, useEffect, useRef } from "react";
-import { Button, Tooltip, Space, Image } from "antd";
+import { Button, Tooltip, Space, Image, message } from "antd";
 import {
   AudioOutlined,
   AudioMutedOutlined,
@@ -330,8 +330,29 @@ const ActiveCallSession = ({
 
     client.on("volume-indicator", handleVolumeIndicator);
 
+    const handleConnectionStateChange = (
+      curState: "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "RECONNECTING" | "DISCONNECTING",
+      prevState: "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "RECONNECTING" | "DISCONNECTING",
+      reason?: string
+    ) => {
+      console.log(`Connection state changed from ${prevState} to ${curState}, reason: ${reason}`);
+      
+      if (curState === "DISCONNECTED" && reason !== "LEAVE") {
+        console.warn("Disconnected from Agora, attempting to recover...");
+        message.warning("Связь потеряна. Пытаемся восстановить...", 5);
+        // Do not leave the room or unmount components on network disconnection
+      } else if (curState === "CONNECTED" && prevState === "RECONNECTING") {
+        message.success("Связь восстановлена", 3);
+      } else if (curState === "RECONNECTING") {
+         message.loading("Переподключение...", 0);
+      }
+    };
+
+    client.on("connection-state-change", handleConnectionStateChange);
+
     return () => {
       client.off("volume-indicator", handleVolumeIndicator);
+      client.off("connection-state-change", handleConnectionStateChange);
     };
   }, [client, isManualFocus, localUid]);
 

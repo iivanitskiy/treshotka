@@ -88,7 +88,7 @@ export default function LobbyPage() {
       setSelectedRoom(room);
       setIsPasswordModalOpen(true);
     } else {
-      router.push(`/room/${room.id}`);
+      router.push(`/room?id=${room.id}`);
     }
   };
 
@@ -97,7 +97,7 @@ export default function LobbyPage() {
 
     if (password === selectedRoom.password) {
       setIsPasswordModalOpen(false);
-      router.push(`/room/${selectedRoom.id}`);
+      router.push(`/room?id=${selectedRoom.id}`);
     } else {
       messageApi.error("Неверный пароль");
     }
