@@ -330,8 +330,24 @@ const ActiveCallSession = ({
 
     client.on("volume-indicator", handleVolumeIndicator);
 
+    const handleConnectionStateChange = (
+      curState: "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "RECONNECTING" | "DISCONNECTING",
+      prevState: "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "RECONNECTING" | "DISCONNECTING",
+      reason?: string
+    ) => {
+      console.log(`Connection state changed from ${prevState} to ${curState}, reason: ${reason}`);
+      
+      if (curState === "DISCONNECTED" && reason !== "LEAVE") {
+        console.warn("Disconnected from Agora, attempting to recover...");
+        // Можно добавить логику уведомления пользователя или попытки переподключения
+      }
+    };
+
+    client.on("connection-state-change", handleConnectionStateChange);
+
     return () => {
       client.off("volume-indicator", handleVolumeIndicator);
+      client.off("connection-state-change", handleConnectionStateChange);
     };
   }, [client, isManualFocus, localUid]);
 
