@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, Timestamp, doc, deleteDoc } from 'firebase/firestore';
 
 export interface Message {
   id: string;
@@ -27,9 +27,18 @@ export const subscribeToMessages = (roomId: string, callback: (messages: Message
   const q = query(collection(db, 'rooms', roomId, 'messages'), orderBy('createdAt', 'asc'));
   return onSnapshot(q, (snapshot) => {
     const messages: Message[] = [];
-    snapshot.forEach((doc) => {
-      messages.push({ id: doc.id, ...doc.data() } as Message);
+    snapshot.forEach((docSnap) => {
+      messages.push({ id: docSnap.id, ...docSnap.data() } as Message);
     });
     callback(messages);
   });
+};
+
+export const deleteMessage = async (roomId: string, messageId: string) => {
+  try {
+    await deleteDoc(doc(db, 'rooms', roomId, 'messages', messageId));
+  } catch (error) {
+    console.error('Ошибка при удалении сообщения: ', error);
+    throw error;
+  }
 };
