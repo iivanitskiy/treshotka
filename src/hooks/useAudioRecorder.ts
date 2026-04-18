@@ -17,7 +17,6 @@ export const useAudioRecorder = ({ channelName }: UseAudioRecorderProps): UseAud
   const recorderRef = useRef<RecordRTC | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Prevent screen sleep during recording
   useWakeLock(isAudioRecording);
 
   useEffect(() => {

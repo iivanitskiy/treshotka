@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDoc, deleteDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDoc, deleteDoc, setDoc, Timestamp, getCountFromServer } from 'firebase/firestore';
 
 export interface Room {
   id: string;
@@ -36,7 +36,9 @@ export const joinRoom = async (roomId: string, user: { uid: string, agoraUid?: n
 export const leaveRoom = async (roomId: string, userId: string) => {
   try {
     const participantRef = doc(db, 'rooms', roomId, 'participants', userId);
-    await deleteDoc(participantRef);
+    deleteDoc(participantRef).catch((error) => {
+      console.error('Ошибка при выходе из комнаты (в фоне): ', error);
+    });
   } catch (error) {
     console.error('Ошибка при выходе из комнаты: ', error);
   }
@@ -104,5 +106,25 @@ export const subscribeToRooms = (callback: (rooms: Room[]) => void) => {
       rooms.push({ id: doc.id, ...doc.data() } as Room);
     });
     callback(rooms);
+  });
+};
+
+export const getParticipantCount = async (roomId: string): Promise<number> => {
+  try {
+    const participantsRef = collection(db, 'rooms', roomId, 'participants');
+    const snapshot = await getCountFromServer(participantsRef);
+    return snapshot.data().count;
+  } catch (error) {
+    console.error('Ошибка при получении количества участников: ', error);
+    return 0;
+  }
+};
+
+export const subscribeToParticipantCount = (roomId: string, callback: (count: number) => void) => {
+  const participantsRef = collection(db, 'rooms', roomId, 'participants');
+  const q = query(participantsRef);
+  
+  return onSnapshot(q, (snapshot) => {
+    callback(snapshot.size);
   });
 };

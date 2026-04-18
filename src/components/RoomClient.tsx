@@ -39,19 +39,35 @@ export default function RoomClient({
         photoURL: user.photoURL,
       });
 
-      const handleBeforeUnload = () => {
-        if (user.uid) {
+      let hasLeftRoom = false;
+      
+      const leaveRoomIfNeeded = () => {
+        if (!hasLeftRoom && user.uid) {
+          hasLeftRoom = true;
           leaveRoom(roomId, user.uid);
         }
       };
 
+      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+        leaveRoomIfNeeded();
+        
+        event.preventDefault();
+        event.returnValue = '';
+      };
+
+      const handlePageHide = (event: PageTransitionEvent) => {
+        if (!event.persisted) {
+          leaveRoomIfNeeded();
+        }
+      };
+
       window.addEventListener("beforeunload", handleBeforeUnload);
+      window.addEventListener("pagehide", handlePageHide);
 
       return () => {
         window.removeEventListener("beforeunload", handleBeforeUnload);
-        if (user.uid) {
-          leaveRoom(roomId, user.uid);
-        }
+        window.removeEventListener("pagehide", handlePageHide);
+        leaveRoomIfNeeded();
       };
     }
   }, [roomId, user.uid, user.displayName, user.photoURL]);

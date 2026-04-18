@@ -630,7 +630,6 @@ export const VideoCall = ({
 
     const el = containerRef.current;
     
-    // Debounce resize to prevent excessive re-renders on mobile
     let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
