@@ -27,6 +27,7 @@ import CreateRoomModal from "@/components/lobby/CreateRoomModal";
 import PasswordModal from "@/components/lobby/PasswordModal";
 import DeleteRoomModal from "@/components/lobby/DeleteRoomModal";
 import Image from "next/image";
+import HamburgerMenu from "@/components/HamburgerMenu";
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -184,6 +185,7 @@ export default function LobbyPage() {
           }}
         >
           <div
+            className="header-left-desktop"
             style={{
               display: "flex",
               alignItems: "center",
@@ -226,7 +228,12 @@ export default function LobbyPage() {
             {<HomeOutlined />}На главную
           </div>
 
+          <div className="header-mobile">
+            <HamburgerMenu onLogout={handleLogout} />
+          </div>
+
           <div
+            className="header-right-desktop"
             style={{
               display: "flex",
               alignItems: "center",

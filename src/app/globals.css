@@ -851,10 +851,20 @@ html {
 @media (max-width: 768px) {
   .home-choice-button {
     padding: 24px !important;
+    gap: 16px !important;
   }
   
   .home-choice-button h2 {
     font-size: 1.5rem !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .home-choice-button .ant-typography {
+    font-size: 0.9rem !important;
+  }
+  
+  .home-choice-button > div:first-child {
+    font-size: 3rem !important;
   }
 }
 
@@ -1003,6 +1013,46 @@ html {
 
 @media (max-width: 768px) {
   .lobby-title {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-buttons-container {
+    flex-direction: column !important;
+    height: auto !important;
+    max-width: 100% !important;
+    gap: 32px !important;
+    border-radius: 24px !important;
+  }
+  
+  .home-buttons-container > .home-choice-button {
+    flex: none !important;
+    width: 100% !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  }
+  
+  .home-buttons-container > .home-choice-button:first-child {
+    border-bottom: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-left-desktop,
+  .header-right-desktop,
+  .home-button {
+    display: none !important;
+  }
+  
+  .header-mobile {
+    display: block !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .header-mobile {
     display: none !important;
   }
 }

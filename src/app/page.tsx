@@ -8,6 +8,7 @@ import { UserOutlined, TeamOutlined, LogoutOutlined } from '@ant-design/icons'
 import Image from 'next/image'
 import { auth } from '@/lib/firebase'
 import { clearUser } from '@/lib/features/auth/authSlice'
+import HamburgerMenu from '@/components/HamburgerMenu'
 
 const { Title, Text } = Typography
 const { Header, Content } = Layout
@@ -89,7 +90,7 @@ export default function Home() {
             zIndex: 10,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="header-left-desktop" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Image
               src="/logo.png"
               width={48}
@@ -120,32 +121,34 @@ export default function Home() {
               Трещотка
             </Title>
           </div>
-          
-          <div></div>
+           
+           <div className="header-mobile">
+             <HamburgerMenu onLogout={handleLogout} />
+           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div
-              className="lobby-header-user-info"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              <Text strong style={{ color: '#d1d5db' }}>
-                Привет, {displayName}
-              </Text>
-              {role === 'admin' && (
-                <Tag color="gold" style={{ margin: 0 }}>
-                  ADMIN
-                </Tag>
-              )}
-            </div>
-            <Button
-              type="primary"
-              danger
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-            >
-              Выйти
-            </Button>
-          </div>
+           <div className="header-right-desktop" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+             <div
+               className="lobby-header-user-info"
+               style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+             >
+               <Text strong style={{ color: '#d1d5db' }}>
+                 Привет, {displayName}
+               </Text>
+               {role === 'admin' && (
+                 <Tag color="gold" style={{ margin: 0 }}>
+                   ADMIN
+                 </Tag>
+               )}
+             </div>
+             <Button
+               type="primary"
+               danger
+               icon={<LogoutOutlined />}
+               onClick={handleLogout}
+             >
+               Выйти
+             </Button>
+           </div>
         </Header>
 
         <Content
@@ -160,7 +163,7 @@ export default function Home() {
             flex: 1,
           }}
         >
-          <div style={{
+          <div className="home-buttons-container" style={{
             display: 'flex',
             width: '100%',
             maxWidth: '1200px',
