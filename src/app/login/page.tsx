@@ -27,7 +27,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push("/lobby");
+      router.push("/");
     }
   }, [isAuthenticated, isLoading, router]);
 

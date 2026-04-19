@@ -54,4 +54,8 @@ next-env.d.ts
 .vscode/
 .idea/
 
+# build
+build.log
+build_output.txt
+
 .vercel

@@ -339,24 +339,12 @@ html {
     display: block !important;
   }
 
-  /* Adjust height split for landscape to give more space to content side-by-side if needed, 
-     BUT user asked for SAME paddings/etc. 
-     If we keep 45/55 split in landscape, it might be too short vertically.
-     However, let's strictly follow "same indents, padding, tabs height".
-     For landscape mobile, maybe we want side-by-side?
-     If I change to side-by-side, I deviate from "same as portrait" structure but keep "same styles".
-     Let's stick to the mobile styles requested.
-     If the user wants side-by-side, they would ask.
-     Actually, let's make sure the LAYOUT adapts for landscape slightly while keeping styling.
-  */
-
   .room-sider .glass-panel {
     border-radius: 20px !important;
     border: none !important;
     background: rgba(20, 23, 35, 0.95) !important;
   }
 
-  /* Compact tabs for mobile */
   .room-sider .ant-tabs-nav {
     margin: 3px !important;
     padding: 0 12px !important;
@@ -460,12 +448,11 @@ html {
 
 .video-card-small:hover {
   transform: scale(1.05);
-  border-color: #3b82f6 !important; /* blue-500 */
+  border-color: #3b82f6 !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
-  /* Override layout to be side-by-side for landscape but keeping compact styles */
   .room-layout {
     display: flex !important;
     flex-direction: row !important;
@@ -831,5 +818,191 @@ html {
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+}
+
+.home-choice-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-choice-button:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+.home-choice-button:hover::before {
+  opacity: 1;
+}
+
+.home-choice-button:hover .home-choice-icon {
+  transform: scale(1.1);
+}
+
+.home-choice-button:hover .home-choice-title {
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+}
+
+.home-choice-button:hover .home-choice-description {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+@media (max-width: 768px) {
+  .home-choice-button {
+    padding: 24px !important;
+  }
+  
+  .home-choice-button h2 {
+    font-size: 1.5rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-choice-button {
+    padding: 20px !important;
+  }
+  
+  .home-choice-button h2 {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* 1 */
+/* .home-button {
+  position: relative;
+  padding: 10px 20px;
+  border-radius: 7px;
+  border: 1px solid rgb(61, 106, 255);
+  font-size: 14px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 2px;
+  background: transparent;
+  color: #fff;
+  overflow: hidden;
+  box-shadow: 0 0 0 0 transparent;
+  -webkit-transition: all 0.2s ease-in;
+  -moz-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+}
+
+.home-button:hover {
+  background: rgb(61, 106, 255);
+  box-shadow: 0 0 30px 5px rgba(0, 142, 236, 0.815);
+  -webkit-transition: all 0.2s ease-out;
+  -moz-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+}
+
+.home-button:hover::before {
+  -webkit-animation: sh02 0.5s 0s linear;
+  -moz-animation: sh02 0.5s 0s linear;
+  animation: sh02 0.5s 0s linear;
+}
+
+.home-button::before {
+  content: '';
+  display: block;
+  width: 0px;
+  height: 86%;
+  position: absolute;
+  top: 7%;
+  left: 0%;
+  opacity: 0;
+  background: #fff;
+  box-shadow: 0 0 50px 30px #fff;
+  -webkit-transform: skewX(-20deg);
+  -moz-transform: skewX(-20deg);
+  -ms-transform: skewX(-20deg);
+  -o-transform: skewX(-20deg);
+  transform: skewX(-20deg);
+}
+
+@keyframes sh02 {
+  from {
+    opacity: 0;
+    left: 0%;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    left: 100%;
+  }
+}
+
+.home-button:active {
+  box-shadow: 0 0 0 0 transparent;
+  -webkit-transition: box-shadow 0.2s ease-in;
+  -moz-transition: box-shadow 0.2s ease-in;
+  transition: box-shadow 0.2s ease-in;
+} */
+
+/* 2 */
+.home-button {
+  display: flex; 
+  align-items: center;
+  justify-content: space-evenly;
+  text-decoration: none;
+  position: relative;
+  border: none;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  color: #fff;
+  width: 9em;
+  height: 2em;
+  line-height: 2em;
+  text-align: center;
+  background: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
+  background-size: 300%;
+  border-radius: 30px;
+  z-index: 1;
+}
+
+.home-button:hover {
+  animation: ani 8s linear infinite;
+  border: none;
+}
+
+@keyframes ani {
+  0% {
+    background-position: 0%;
+  }
+
+  100% {
+    background-position: 400%;
+  }
+}
+
+.home-button:before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  z-index: -1;
+  background: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
+  background-size: 400%;
+  border-radius: 35px;
+  transition: 1s;
+}
+
+.home-button:hover::before {
+  filter: blur(20px);
+}
+
+.home-button:active {
+  background: linear-gradient(32deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
+}
+
+@media (max-width: 768px) {
+  .lobby-title {
+    display: none !important;
   }
 }

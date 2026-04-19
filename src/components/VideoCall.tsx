@@ -905,7 +905,7 @@ export const VideoCall = ({
               />
             </Tooltip>
 
-            <Tooltip title={isTouch ? null : "На главную"}>
+            <Tooltip title={isTouch ? null : "В лобби"}>
               <Button
                 shape="circle"
                 icon={<HomeOutlined />}
@@ -922,7 +922,7 @@ export const VideoCall = ({
                   if (activeConnection) {
                     setActiveConnection(false);
                   }
-                  router.push("/lobby");
+                  router.push("/");
                 }}
               />
             </Tooltip>

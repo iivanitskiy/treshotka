@@ -66,7 +66,7 @@ export default function RegisterPage() {
         })
       );
 
-      router.push("/lobby");
+      router.push("/");
     } catch (err: unknown) {
       console.error("Ошибка регистрации:", err);
       const error = err as { code?: string; message?: string };

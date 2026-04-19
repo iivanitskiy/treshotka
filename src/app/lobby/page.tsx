@@ -21,7 +21,7 @@ import {
   Spin,
   Tag,
 } from "antd";
-import { LogoutOutlined, PlusOutlined } from "@ant-design/icons";
+import { LogoutOutlined, PlusOutlined, HomeOutlined } from "@ant-design/icons";
 import RoomList from "@/components/lobby/RoomList";
 import CreateRoomModal from "@/components/lobby/CreateRoomModal";
 import PasswordModal from "@/components/lobby/PasswordModal";
@@ -71,7 +71,7 @@ export default function LobbyPage() {
         values.roomName,
         user.uid,
         user.displayName || "Unknown",
-        values.password
+        values.password,
       );
       setIsCreateModalOpen(false);
       messageApi.success("Комната успешно создана");
@@ -183,7 +183,14 @@ export default function LobbyPage() {
             zIndex: 10,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flex: 1,
+            }}
+          >
             <Image
               src="/logo.png"
               width={48}
@@ -214,7 +221,20 @@ export default function LobbyPage() {
               Трещотка
             </Title>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+
+          <div className="home-button" onClick={() => router.push("/")}>
+            {<HomeOutlined />}На главную
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              flex: 1,
+              justifyContent: "flex-end",
+            }}
+          >
             <div
               className="lobby-header-user-info"
               style={{ display: "flex", alignItems: "center", gap: "8px" }}
