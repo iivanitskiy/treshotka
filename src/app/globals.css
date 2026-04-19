@@ -960,17 +960,17 @@ html {
   text-decoration: none;
   position: relative;
   border: none;
-  font-size: 14px;
+  font-size: 15px;
   font-family: inherit;
   cursor: pointer;
   color: #fff;
   width: 9em;
-  height: 2em;
+  height: 3em;
   line-height: 2em;
   text-align: center;
   background: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
-  background-size: 300%;
-  border-radius: 30px;
+  background-size: 400%;
+  border-radius: 10px;
   z-index: 1;
 }
 
@@ -992,14 +992,14 @@ html {
 .home-button:before {
   content: "";
   position: absolute;
-  top: -5px;
-  left: -5px;
-  right: -5px;
-  bottom: -5px;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
   z-index: -1;
   background: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
   background-size: 400%;
-  border-radius: 35px;
+  border-radius: 10px;
   transition: 1s;
 }
 
@@ -1013,7 +1013,7 @@ html {
 
 @media (max-width: 768px) {
   .lobby-title {
-    display: none !important;
+    align-self: flex-end !important ;
   }
 }
 
@@ -1040,14 +1040,40 @@ html {
 }
 
 @media (max-width: 768px) {
-  .header-left-desktop,
   .header-right-desktop,
   .home-button {
     display: none !important;
   }
   
+  .header-left-desktop {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: visible;
+  }
+  
   .header-mobile {
     display: block !important;
+  }
+  
+  .lobby-header {
+    justify-content: space-between !important;
+  }
+  
+  .lobby-title {
+    font-size: 1.5rem !important;
+    letter-spacing: 1px !important;
+    font-weight: 700 !important;
+    white-space: nowrap;
+    color: white !important;
+    text-shadow: 0 0 8px rgba(255,255,255,0.4), 0 0 25px rgb(156, 43, 231) !important;
+  }
+  
+  .header-left-desktop img {
+    width: 40px !important;
+    height: 40px !important;
   }
 }
 
