@@ -9,6 +9,7 @@ import { Layout, Tabs } from "antd";
 import { VideoCall } from "./VideoCall";
 import Chat from "./Chat";
 import ParticipantList from "./ParticipantList";
+import styles from "./RoomClient.module.css";
 
 const { Content, Sider } = Layout;
 
@@ -77,12 +78,10 @@ export default function RoomClient({
   return (
     <AgoraRTCProvider client={client}>
       <Layout
-        className="room-layout"
-        style={{ height: "100vh", background: "transparent" }}
+        className={`room-layout ${styles.roomLayout}`}
       >
         <Content
-          className="room-content"
-          style={{ padding: "24px 0 24px 24px", display: "flex", flexDirection: "column" }}
+          className={`room-content ${styles.roomContent}`}
         >
           <div className="video-wrapper">
             <VideoCall
@@ -95,10 +94,9 @@ export default function RoomClient({
           </div>
         </Content>
         <Sider
-          className="room-sider"
+          className={`room-sider ${styles.roomSidebar}`}
           width={400}
           theme="light"
-          style={{ background: "transparent", padding: "24px" }}
         >
           <div className="glass-panel">
             <Tabs

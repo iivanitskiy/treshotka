@@ -28,6 +28,7 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import type { IAgoraRTCRemoteUser } from "agora-rtc-react";
+import styles from "./VideoCall.module.css";
 import {
   joinRoom,
   subscribeToParticipants,
@@ -354,23 +355,7 @@ const ActiveCallSession = ({
           setFocusedUid(isLocal ? "local" : user!.uid);
           setIsManualFocus(true);
         }}
-        style={{
-          width: "180px",
-          height: "100px",
-          flexShrink: 0,
-          background: "#1c1f2e",
-          borderRadius: "16px",
-          overflow: "hidden",
-          border: isSpeaking
-            ? "2px solid #3b82f6"
-            : "1px solid rgba(255, 255, 255, 0.08)",
-          position: "relative",
-          cursor: "pointer",
-          boxShadow: isSpeaking
-            ? "0 0 0 3px rgba(59,130,246,0.25), 0 10px 15px -3px rgba(0,0,0,0.3)"
-            : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        }}
-        className="video-card-small"
+        className={`${styles.smallVideoContainer} ${isSpeaking ? styles.smallVideoContainerSpeaking : ''} video-card-small`}
       >
         {isLocal ? (
           <LocalUser
@@ -379,18 +364,7 @@ const ActiveCallSession = ({
             cameraOn={cameraOn}
             cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
           >
-            <div
-              style={{
-                position: "absolute",
-                bottom: "4px",
-                left: "4px",
-                background: "rgba(0, 0, 0, 0.6)",
-                color: "white",
-                padding: "2px 8px",
-                borderRadius: "4px",
-                fontSize: "10px",
-              }}
-            >
+            <div className={styles.smallVideoLabel}>
               {getParticipantName("local")}
             </div>
           </LocalUser>
@@ -399,18 +373,7 @@ const ActiveCallSession = ({
             user={user!}
             cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
           >
-            <div
-              style={{
-                position: "absolute",
-                bottom: "4px",
-                left: "4px",
-                background: "rgba(0, 0, 0, 0.6)",
-                color: "white",
-                padding: "2px 8px",
-                borderRadius: "4px",
-                fontSize: "10px",
-              }}
-            >
+            <div className={styles.smallVideoLabel}>
               {getParticipantName(user!.uid)}
             </div>
           </RemoteUser>
@@ -422,29 +385,14 @@ const ActiveCallSession = ({
   const renderFocusedVideo = () => {
     if (effectiveFocusedUid === "local") {
       return (
-        <div
-          className="agora-video-wrapper"
-          style={{ width: "100%", height: "100%" }}
-        >
+        <div className={`agora-video-wrapper ${styles.agoraVideoWrapper}`}>
           <LocalUser
             videoTrack={(videoTrack as any) || undefined}
             micOn={micOn}
             cameraOn={cameraOn}
             cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
           >
-            <div
-              style={{
-                position: "absolute",
-                top: "16px",
-                right: "16px",
-                background: "rgba(0, 0, 0, 0.6)",
-                color: "white",
-                padding: "4px 12px",
-                borderRadius: "9999px",
-                fontSize: "12px",
-                backdropFilter: "blur(4px)",
-              }}
-            >
+            <div className={styles.userLabel}>
               Вы
             </div>
           </LocalUser>
@@ -457,27 +405,12 @@ const ActiveCallSession = ({
     );
     if (remoteUser) {
       return (
-        <div
-          className="agora-video-wrapper"
-          style={{ width: "100%", height: "100%" }}
-        >
+        <div className={`agora-video-wrapper ${styles.agoraVideoWrapper}`}>
           <RemoteUser
             user={remoteUser}
             cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
           >
-            <div
-              style={{
-                position: "absolute",
-                top: "16px",
-                right: "16px",
-                background: "rgba(0, 0, 0, 0.6)",
-                color: "white",
-                padding: "4px 12px",
-                borderRadius: "9999px",
-                fontSize: "12px",
-                backdropFilter: "blur(4px)",
-              }}
-            >
+            <div className={styles.userLabel}>
               {getParticipantName(remoteUser.uid)}
             </div>
           </RemoteUser>
@@ -502,24 +435,13 @@ const ActiveCallSession = ({
       <div className="video-call-main-window">
         <div className="video-player-container">
           {isManualFocus && (
-            <div
-              style={{
-                position: "absolute",
-                top: "16px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 30,
-              }}
-            >
+            <div className={styles.manualFocusButtonContainer}>
               <Button
                 type="primary"
                 shape="round"
                 icon={<UserSwitchOutlined />}
                 onClick={() => setIsManualFocus(false)}
-                style={{
-                  background: "rgba(28, 31, 46, 0.8)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
+                className={styles.manualFocusButton}
               >
                 Вернуть авто-фокус
               </Button>
@@ -922,7 +844,7 @@ export const VideoCall = ({
                   if (activeConnection) {
                     setActiveConnection(false);
                   }
-                  router.push("/");
+                  router.push("/lobby");
                 }}
               />
             </Tooltip>

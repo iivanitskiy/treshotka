@@ -13,6 +13,7 @@ import {
 import { auth } from "@/lib/firebase";
 import { useAppDispatch } from "@/lib/hooks";
 import { clearUser } from "@/lib/features/auth/authSlice";
+import styles from "./HamburgerMenu.module.css";
 
 interface HamburgerMenuProps {
   onLogout?: () => void;
@@ -108,8 +109,7 @@ export default function HamburgerMenu({ onLogout }: HamburgerMenuProps) {
         <Menu
           mode="inline"
           items={menuItems}
-          style={{ background: "transparent", borderRight: 0 }}
-          className="hamburger-menu"
+          className={`hamburger-menu ${styles.hamburgerMenu}`}
         />
       </Drawer>
     </>

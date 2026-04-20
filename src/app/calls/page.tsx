@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 import {
@@ -11,12 +11,19 @@ import {
   theme,
   Spin,
   Tag,
+  Input,
+  Select,
+  Grid,
 } from "antd";
-import { UserOutlined, LogoutOutlined, HomeOutlined } from "@ant-design/icons";
+import { LogoutOutlined, HomeOutlined, SearchOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { auth } from "@/lib/firebase";
 import { clearUser } from "@/lib/features/auth/authSlice";
 import HamburgerMenu from "@/components/HamburgerMenu";
+import UserList from "@/components/calls/UserList";
+import { subscribeToUsers, FirebaseUser } from "@/lib/services/userService";
+import { clearPresence } from "@/lib/services/presenceService";
+import styles from "./calls.module.css";
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -32,10 +39,38 @@ export default function CallsPage() {
     }
   }, [user.isAuthenticated, user.isLoading, router]);
 
+  const [users, setUsers] = useState<FirebaseUser[]>([]);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const { xs } = Grid.useBreakpoint();
+
   const handleLogout = () => {
+    clearPresence();
     auth.signOut();
     dispatch(clearUser());
     router.push("/login");
+  };
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = user.displayName.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "all" ||
+      (statusFilter === "online" && user.online) ||
+      (statusFilter === "offline" && !user.online);
+    return matchesSearch && matchesStatus;
+  });
+
+  useEffect(() => {
+    const unsubscribe = subscribeToUsers((firebaseUsers) => {
+      setUsers(firebaseUsers);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleCallClick = (userId: string) => {
+    const user = users.find(u => u.uid === userId);
+    alert(`Инициируется звонок с ${user?.displayName}. Функционал звонков находится в разработке.`);
   };
 
   if (user.isLoading) {
@@ -49,6 +84,22 @@ export default function CallsPage() {
         }}
       >
         <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#0f111a",
+        }}
+      >
+        <Spin size="large" tip="Загрузка пользователей..." />
       </div>
     );
   }
@@ -167,6 +218,7 @@ export default function CallsPage() {
               danger
               icon={<LogoutOutlined />}
               onClick={handleLogout}
+              className={styles.logoutButton}
             >
               Выйти
             </Button>
@@ -180,7 +232,6 @@ export default function CallsPage() {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
             gap: "32px",
           }}
         >
@@ -192,75 +243,63 @@ export default function CallsPage() {
               borderRadius: "24px",
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
               overflow: "hidden",
-              padding: "48px",
-              maxWidth: "600px",
+              padding: "32px",
+              maxWidth: "800px",
               width: "100%",
-              textAlign: "center",
             }}
           >
-            <div
-              style={{
-                fontSize: "4rem",
-                color: "#60a5fa",
-                marginBottom: "24px",
-              }}
-            >
-              <UserOutlined />
+            <div style={{ marginBottom: "32px" }}>
+              <Title level={2} style={{ color: "white", marginBottom: "8px" }}>
+                Звонки 1 на 1
+              </Title>
+              <Text style={{ color: "rgba(255, 255, 255, 0.6)" }}>
+                Выберите пользователя из списка для начала звонка
+              </Text>
             </div>
-            <Title level={3} style={{ color: "white", marginBottom: "16px" }}>
-              Функционал звонков 1 на 1
-            </Title>
-            <Text
-              style={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "1rem" }}
-            >
-              Этот раздел находится в разработке. Здесь будет реализован
-              функционал для приватных видеозвонков с одним собеседником.
-            </Text>
+
             <div
               style={{
-                marginTop: "32px",
                 display: "flex",
+                flexDirection: xs ? "column" : "row",
                 gap: "16px",
-                justifyContent: "center",
+                marginBottom: "24px",
+                flexWrap: "wrap",
               }}
             >
-              <Button
-                type="primary"
-                size="large"
-                onClick={() => alert("Функционал в разработке")}
+              <Input
+                placeholder="Поиск по имени..."
+                prefix={<SearchOutlined />}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 style={{
-                  background: "#3b82f6",
-                  border: "1px solid rgba(255,255,255,0.05)",
-                }}
-              >
-                Начать звонок
-              </Button>
-              <Button
-                type="default"
-                size="large"
-                onClick={() => router.push("/")}
-                style={{
+                  flex: xs ? "none" : 1,
+                  width: xs ? "100%" : "70%",
                   background: "rgba(255, 255, 255, 0.05)",
                   border: "1px solid rgba(255,255,255,0.1)",
                   color: "white",
                 }}
-              >
-                Назад
-              </Button>
+              />
+              <Select
+                value={statusFilter}
+                onChange={setStatusFilter}
+                style={{ width: xs ? "100%" : "30%" }}
+                options={[
+                  { value: "all", label: "Все пользователи" },
+                  { value: "online", label: "Только онлайн" },
+                  { value: "offline", label: "Только оффлайн" },
+                ]}
+              />
+            </div>
+
+            <UserList users={filteredUsers} onCallClick={handleCallClick} />
+
+            <div style={{ marginTop: "32px", textAlign: "center" }}>
+              <Text type="secondary" style={{ color: "rgba(255, 255, 255, 0.4)" }}>
+                Всего зарегистрированных пользователей: {users.length}
+              </Text>
             </div>
           </div>
 
-          <Text
-            style={{
-              color: "rgba(255, 255, 255, 0.4)",
-              textAlign: "center",
-              maxWidth: "600px",
-            }}
-          >
-            В будущем здесь появится возможность создавать приватные звонки,
-            приглашать собеседников по ссылке и использовать расширенные
-            настройки аудио/видео.
-          </Text>
         </Content>
       </Layout>
     </ConfigProvider>

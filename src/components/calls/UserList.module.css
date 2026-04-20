@@ -1,0 +1,156 @@
+.card {
+  background: rgba(28, 31, 46, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25) !important;
+  width: 100%;
+  max-width: 800px;
+  overflow: hidden;
+}
+
+.card :global(.ant-card-body) {
+  padding: 0 !important;
+}
+
+.userItem {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0;
+  transition: background-color 0.2s ease;
+}
+
+.userItem:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.userItem:last-child {
+  border-bottom: none;
+}
+
+.userItemMobile {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: auto;
+  flex: 1;
+  min-width: 0;
+}
+
+.userInfoMobile {
+  width: 100%;
+}
+
+.avatarContainer {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.onlineIndicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #0f111a;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.8);
+  z-index: 1;
+}
+
+.userDetails {
+  min-width: 0;
+  flex: 1;
+}
+
+.userName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.callButton {
+  background: linear-gradient(135deg, #299b2f 0%, #0d8b3e 100%) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(59, 246, 174, 0.3) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: auto;
+  min-width: 120px;
+  justify-content: center !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  color: white !important;
+  font-weight: 500 !important;
+  padding: 8px 16px !important;
+  height: auto !important;
+}
+
+.callButton:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+  box-shadow: 0 6px 20px rgba(59, 246, 174, 0.5) !important;
+  transform: translateY(-2px) !important;
+}
+
+.callButton:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 2px 8px rgba(59, 246, 174, 0.4) !important;
+}
+
+.callButton:focus {
+  outline: 2px solid rgba(59, 246, 174, 0.6) !important;
+  outline-offset: 2px !important;
+}
+
+.callButton:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+.callButtonMobile {
+  width: 100% !important;
+}
+
+.userNameText {
+  color: white;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .userItem {
+    padding: 12px 16px;
+  }
+  
+  .callButton {
+    min-width: 100%;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.userItem {
+  animation: fadeIn 0.3s ease forwards;
+}

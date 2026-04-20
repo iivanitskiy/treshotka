@@ -1,0 +1,233 @@
+.layout {
+  min-height: 100vh;
+  background: #0f111a;
+}
+
+.header {
+  background: rgba(15, 17, 26, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerLeftDesktop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerRightDesktop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lobbyHeaderUserInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userNameText {
+  color: #d1d5db;
+}
+
+.adminTag {
+  margin: 0;
+}
+
+.logoutButton {
+  transition: transform 0.2s ease;
+}
+
+.logoutButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(246, 59, 68, 0.5) !important;
+}
+
+.content {
+  padding: 0 32px 24px 32px;
+  background: #0f111a;
+}
+
+.sectionTitle {
+  color: white;
+  margin-top: 0;
+}
+
+.sectionSubtitle {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.roomsSection {
+  margin-bottom: 16px;
+}
+
+.filterContainer {
+  margin-bottom: 24px;
+}
+
+.filterSelect {
+  width: 30%;
+}
+
+.filterSelectMobile {
+  width: 100%;
+}
+
+.statsText {
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 32px;
+  text-align: center;
+}
+
+.modalTitle {
+  color: white;
+}
+
+.modalCloseIcon {
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+
+.modalCloseIcon:hover {
+  color: white;
+}
+
+.formLabel {
+  color: #d1d5db;
+}
+
+.formInput {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.formItem {
+  margin-bottom: 16px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0;
+}
+
+.primaryButton {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.primaryButton:hover {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+.primaryButton:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+.textWhite {
+  color: white;
+}
+
+.textSecondary {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.textMuted {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.createRoomBtn {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.createRoomBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.createRoomBtn:hover {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  box-shadow: 0 15px 30px -12px rgba(34, 197, 94, 0.4);
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.createRoomBtn:hover::before {
+  opacity: 1;
+}
+
+.createRoomBtn:active {
+  transform: translateY(-2px) scale(0.98);
+  box-shadow: 0 15px 30px -8px rgba(34, 197, 94, 0.3);
+  transition-duration: 0.1s;
+}
+
+.createRoomBtnContainer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 16px;
+  }
+  
+  .content {
+    padding: 0 16px 24px 16px;
+  }
+  
+  .filterSelect {
+    width: 100%;
+  }
+
+  .createRoomBtnContainer {
+    justify-content: center;
+    padding-top: 16px;
+  }
+
+  .createRoomBtn {
+    padding: 20px;
+    font-size: 15px;
+    width: 100%;
+    max-width: 300px;
+  }
+}

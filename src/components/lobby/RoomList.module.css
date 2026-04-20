@@ -1,0 +1,246 @@
+.roomList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roomCardContent {
+  width: 100%;
+}
+
+.roomHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.roomAvatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid rgba(102, 126, 234, 0.5);
+}
+
+:global(.anticon).roomIcon {
+  font-size: 16px !important;
+  color: #93c5fd !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.roomTitle {
+  font-size: 18px !important;
+}
+
+.roomCreator {
+  color: #9ca3af !important;
+  font-size: 14px ;
+}
+
+.roomDate {
+  color: #6b7280 !important;
+}
+
+.roomActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.joinButton {
+  background: linear-gradient(135deg, #1c9dd8 0%, #294ae0 100%);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(25, 114, 231, 0.445);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  min-width: 120px;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  color: white;
+  font-weight: 500;
+  padding: 8px 16px;
+  height: auto;
+}
+
+.joinButton:hover {
+  background: linear-gradient(135deg, #3499d3 0%, #1f66d1 100%);
+  box-shadow: 0 6px 20px rgba(51, 127, 197, 0.664);
+  transform: translateY(-2px);
+}
+
+.joinButton:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(16, 131, 185, 0.589);
+}
+
+.joinButton:focus {
+  outline: 2px solid rgba(16, 109, 185, 0.6);
+  outline-offset: 2px;
+}
+
+.joinButton:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.deleteButton {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  min-width: 120px;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  color: white;
+  font-weight: 500;
+  padding: 8px 16px;
+  height: auto;
+}
+
+.deleteButton:hover {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+  transform: translateY(-2px);
+}
+
+.deleteButton:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.deleteButton:focus {
+  outline: 2px solid rgba(239, 68, 68, 0.6);
+  outline-offset: 2px;
+}
+
+.deleteButton:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.lockIcon {
+  color: #fbbf24;
+}
+
+.passwordTag {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.emptyStateText {
+  color: #9ca3af;
+}
+
+:global(.ant-avatar).roomAvatarLocked {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  flex-shrink: 0 !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+}
+
+:global(.ant-avatar).roomAvatarUnlocked {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  color: #3b82f6 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  flex-shrink: 0 !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+}
+
+:global(.ant-space).participantCountBadge {
+  background-color: rgba(15, 17, 26, 0.07) !important;
+  padding: 2px 8px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  margin-top: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.participantCountText {
+  font-size: 14px !important;
+  color: #93c5fd !important;
+  margin-left: 4px !important;
+}
+
+.deleteButtonTransparent {
+  background: linear-gradient(135deg, #cc3232 0%, #b6102b 100%);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(185, 16, 16, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  min-width: 120px;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  color: white;
+  font-weight: 500;
+  padding: 8px 16px;
+  height: auto;
+}
+
+.deleteButtonTransparent:hover {
+  background: linear-gradient(135deg, #f13d3d 0%, #df1246 100%);
+  box-shadow: 0 6px 20px rgba(207, 18, 27, 0.5);
+  transform: translateY(-2px);
+}
+
+.jdeleteButtonTransparent:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 8px rgba(185, 16, 16, 0.4);
+}
+
+.deleteButtonTransparent:focus {
+  outline: 2px solid rgba(185, 16, 67, 0.6);
+  outline-offset: 2px;
+}
+
+.deleteButtonTransparent:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .roomHeader {
+    align-items: flex-start;
+  }
+  
+  .roomTitle {
+    font-size: 16px;
+  }
+  
+  .roomActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .joinButton, .deleteButton {
+    width: 100%;
+  }
+}

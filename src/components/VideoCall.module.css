@@ -1,0 +1,99 @@
+.agoraVideoWrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.userLabel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.smallVideoContainer {
+  width: 180px;
+  height: 100px;
+  flex-shrink: 0;
+  background: #1c1f2e;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.smallVideoContainer.speaking {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.25), 0 10px 15px -3px rgba(0,0,0,0.3);
+}
+
+.smallVideoContainerSpeaking {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.25), 0 10px 15px -3px rgba(0,0,0,0.3);
+}
+
+.smallVideoLabel {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.manualFocusButtonContainer {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+}
+
+.manualFocusButton {
+  background: rgba(28, 31, 46, 0.8);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.controlButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: all 0.2s;
+}
+
+.recordingIndicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.screenShareButton,
+.leaveButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}

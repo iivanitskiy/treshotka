@@ -6,6 +6,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAppDispatch } from "@/lib/hooks";
 import { setUser, clearUser, setLoading } from "@/lib/features/auth/authSlice";
+import { initPresence } from "@/lib/services/presenceService";
 
 export default function AuthProvider({
   children,
@@ -36,6 +37,7 @@ export default function AuthProvider({
             role: role,
           })
         );
+        initPresence();
       } else {
         dispatch(clearUser());
       }

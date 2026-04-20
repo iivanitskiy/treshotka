@@ -1,0 +1,139 @@
+.layout {
+  min-height: 100vh;
+  background: #0f111a;
+}
+
+.header {
+  background: rgba(15, 17, 26, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerLeftDesktop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerRightDesktop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lobbyHeaderUserInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userNameText {
+  color: #d1d5db;
+}
+
+.adminTag {
+  margin: 0;
+}
+
+.logoutButton {
+  transition: transform 0.2s ease;
+}
+
+.logoutButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(246, 59, 68, 0.5) !important;
+}
+
+.content {
+  padding: 0 32px 24px 32px;
+  background: #0f111a;
+}
+
+.sectionTitle {
+  color: white;
+  margin-bottom: 8px;
+}
+
+.sectionSubtitle {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.sectionHeader {
+  margin-bottom: 32px;
+}
+
+.filterContainer {
+  margin-bottom: 24px;
+}
+
+.filterSelect {
+  width: 30%;
+}
+
+.filterSelectMobile {
+  width: 100%;
+}
+
+.statsContainer {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.statsText {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.userListContainer {
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 16px;
+  }
+  
+  .content {
+    padding: 0 16px 24px 16px;
+  }
+  
+  .filterSelect {
+    width: 100%;
+  }
+}
+
+.loadingContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.errorContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.errorText {
+  color: #ef4444;
+  text-align: center;
+}
+
+.textWhite {
+  color: white;
+}
+
+.textSecondary {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.textMuted {
+  color: rgba(255, 255, 255, 0.4);
+}

@@ -28,6 +28,7 @@ import PasswordModal from "@/components/lobby/PasswordModal";
 import DeleteRoomModal from "@/components/lobby/DeleteRoomModal";
 import Image from "next/image";
 import HamburgerMenu from "@/components/HamburgerMenu";
+import styles from "./lobby.module.css";
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -167,7 +168,7 @@ export default function LobbyPage() {
       }}
     >
       {contextHolder}
-      <Layout style={{ minHeight: "100vh", background: "#0f111a" }}>
+      <Layout className={styles.layout}>
         <Header
           className="lobby-header"
           style={{
@@ -260,6 +261,7 @@ export default function LobbyPage() {
               danger
               icon={<LogoutOutlined />}
               onClick={handleLogout}
+              className={styles.logoutButton}
             >
               Выйти
             </Button>
@@ -279,32 +281,14 @@ export default function LobbyPage() {
               gap: "24px",
             }}
           >
-            <div
-              className="create-room-btn-container"
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                paddingTop: "24px",
-              }}
-            >
+            <div className={styles.createRoomBtnContainer}>
               {user.role === "admin" && (
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  size="large"
-                  className="create-room-btn"
+                <div
+                  className={styles.createRoomBtn}
                   onClick={() => setIsCreateModalOpen(true)}
-                  style={{
-                    background: "#22c55e",
-                    backdropFilter: "blur(12px)",
-                    border: "1px solid rgba(255,255,255,0.05)",
-                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-                    overflow: "hidden",
-                    padding: "24px",
-                  }}
                 >
-                  Создать комнату
-                </Button>
+                  <PlusOutlined />Создать комнату
+                </div>
               )}
             </div>
 

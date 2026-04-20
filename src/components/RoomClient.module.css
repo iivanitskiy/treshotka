@@ -1,0 +1,15 @@
+.roomLayout {
+  height: 100vh;
+  background: transparent;
+}
+
+.roomContent {
+  padding: 24px 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.roomSidebar {
+  background: transparent;
+  padding: 24px;
+}

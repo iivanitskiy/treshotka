@@ -59,7 +59,7 @@ export default function RoomPage({
           title="404"
           subTitle="Room not found"
           extra={
-            <Link href="/">
+            <Link href="/lobby">
               <Button type="primary">В лобби</Button>
             </Link>
           }

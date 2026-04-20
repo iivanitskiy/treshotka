@@ -1,0 +1,21 @@
+.senderName {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.senderNameMobile {
+  font-size: 10px;
+}
+
+.deleteIcon {
+  color: #f87171;
+  font-size: 18px;
+}
+
+.deleteIconMobile {
+  font-size: 16px;
+}
+
+.messageText {
+  word-break: break-word;
+}

@@ -6,7 +6,7 @@ import {
   subscribeToParticipantCount,
   getParticipantCount,
 } from "@/lib/services/roomService";
-import { Button, Empty, Avatar, Space, Typography } from "antd";
+import { Empty, Avatar, Space, Typography } from "antd";
 import {
   DeleteOutlined,
   LoginOutlined,
@@ -14,6 +14,7 @@ import {
   UnlockOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import styles from "./RoomList.module.css";
 
 const { Text } = Typography;
 
@@ -94,7 +95,7 @@ export default function RoomList({
     return (
       <Empty
         description={
-          <span style={{ color: "#9ca3af" }}>
+          <span className={styles.emptyStateText}>
             Нет доступных комнат. Создайте новую!
           </span>
         }
@@ -104,44 +105,21 @@ export default function RoomList({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+    <div className={styles.roomList}>
       {rooms.map((room) => (
         <div key={room.id} className="room-card">
           <div className="room-card-content">
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div className={styles.roomHeader}>
               <Avatar
-                style={{
-                  backgroundColor: room.password
-                    ? "rgba(239, 68, 68, 0.2)"
-                    : "rgba(59, 130, 246, 0.2)",
-                  color: room.password ? "#ef4444" : "#3b82f6",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  flexShrink: 0,
-                }}
+                className={room.password ? styles.roomAvatarLocked : styles.roomAvatarUnlocked}
                 icon={room.password ? <LockOutlined /> : <UnlockOutlined />}
                 size="large"
               />
               <Space>
                 {participantCounts[room.id] !== null && (
-                  <Space
-                    style={{
-                      backgroundColor: "rgba(15, 17, 26, 0.07)",
-                      padding: "2px 8px",
-                      borderRadius: "12px",
-                      border: "1px solid rgba(59, 130, 246, 0.3)",
-                      marginTop: "8px",
-                    }}
-                  >
-                    <UserOutlined
-                      style={{ fontSize: "12px", color: "#93c5fd" }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: "14px",
-                        color: "#93c5fd",
-                        marginLeft: "4px",
-                      }}
-                    >
+                  <Space className={styles.participantCountBadge}>
+                    <UserOutlined className={styles.roomIcon} />
+                    <Text className={styles.participantCountText}>
                       {participantCounts[room.id]}
                     </Text>
                   </Space>
@@ -150,15 +128,15 @@ export default function RoomList({
             </div>
             <div className="room-card-text">
               <Space>
-                <Text strong style={{ fontSize: "18px", color: "white" }}>
+                <Text strong className={styles.roomTitle}>
                   {room.name}
                 </Text>
               </Space>
               <Space orientation="vertical" size={0}>
-                <Text style={{ color: "#9ca3af", fontSize: "14px" }}>
+                <Text className={styles.roomCreator}>
                   Создал(а) {room.creatorName || room.createdBy}
                 </Text>
-                <Text style={{ color: "#6b7280", fontSize: "12px" }}>
+                <Text className={styles.roomDate}>
                   {room.createdAt?.seconds
                     ? new Date(
                         room.createdAt.seconds * 1000,
@@ -170,22 +148,19 @@ export default function RoomList({
           </div>
           <div className="room-card-actions">
             {(currentUserId === room.createdBy || isAdmin) && (
-              <Button
-                danger
-                icon={<DeleteOutlined />}
+              <div
                 onClick={() => onDelete(room.id)}
-                style={{ background: "rgba(0, 0, 0, 0)" }}
+                className={styles.deleteButtonTransparent}
               >
-                Удалить
-              </Button>
+                <DeleteOutlined /> Удалить
+              </div>
             )}
-            <Button
-              type="primary"
-              icon={<LoginOutlined />}
+            <div
+              className={styles.joinButton}
               onClick={() => onEnter(room)}
             >
-              Войти
-            </Button>
+              <LoginOutlined/> Войти
+            </div>
           </div>
         </div>
       ))}

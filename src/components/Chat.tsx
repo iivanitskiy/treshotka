@@ -11,6 +11,7 @@ import {
 import { Input, Button, Typography } from "antd";
 import { DeleteOutlined, SendOutlined } from "@ant-design/icons";
 import { Timestamp } from "firebase/firestore";
+import styles from "./Chat.module.css";
 
 const { Text } = Typography;
 
@@ -170,7 +171,7 @@ export default function Chat({
                   }}
                 >
                   {!isMe && (
-                    <Text style={{ fontSize: isMobile ? "10px" : "12px", color: "#9ca3af" }}>
+                    <Text className={isMobile ? `${styles.senderName} ${styles.senderNameMobile}` : styles.senderName}>
                       {msg.senderName}
                     </Text>
                   )}
@@ -190,7 +191,7 @@ export default function Chat({
                       aria-label="Удалить сообщение"
                       icon={
                         <DeleteOutlined
-                          style={{ color: "#f87171", fontSize: isMobile ? "16px" : "18px" }}
+                          className={isMobile ? `${styles.deleteIcon} ${styles.deleteIconMobile}` : styles.deleteIcon}
                         />
                       }
                       onClick={(e) => handleDeleteMessage(msg.id, e)}
@@ -250,7 +251,7 @@ export default function Chat({
                         minWidth: 0,
                       }}
                     >
-                      <span style={{ wordBreak: "break-word" }}>{msg.text}</span>
+                      <span className={styles.messageText}>{msg.text}</span>
                       {timeLabel ? (
                         <span
                           style={{
