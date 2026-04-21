@@ -81,16 +81,7 @@ export default function HamburgerMenu({ onLogout }: HamburgerMenuProps) {
         type="text"
         icon={<MenuOutlined />}
         onClick={showDrawer}
-        style={{
-          fontSize: "20px",
-          color: "white",
-          width: "48px",
-          height: "48px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        className="hamburger-button"
+        className={styles.hamburgerButton}
       />
       <Drawer
         title="Меню"
@@ -99,7 +90,7 @@ export default function HamburgerMenu({ onLogout }: HamburgerMenuProps) {
         open={open}
         size={280}
         styles={{
-          body: { padding: 0, background: "rgba(28, 31, 46, 0.95)" },
+          body: { padding: 0, background: "rgba(28, 31, 46, 0.9)" },
           header: {
             background: "rgba(28, 31, 46, 0.9)",
             borderBottom: "1px solid rgba(255,255,255,0.05)",
@@ -109,6 +100,10 @@ export default function HamburgerMenu({ onLogout }: HamburgerMenuProps) {
         <Menu
           mode="inline"
           items={menuItems}
+          style={{
+            background: "rgba(28, 31, 46, 0.9)",
+            borderBottom: "1px solid rgba(255,255,255,0.05)",
+          }}
           className={`hamburger-menu ${styles.hamburgerMenu}`}
         />
       </Drawer>

@@ -2,3 +2,38 @@
   background: transparent;
   border-right: 0;
 }
+
+.hamburgerMenu :global(.ant-menu-item) {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 8px !important;
+  margin: 4px 8px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.hamburgerMenu :global(.ant-menu-item:hover) {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: white !important;
+}
+
+.hamburgerMenu :global(.ant-menu-item-selected) {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: white !important;
+}
+
+.hamburgerButton {
+  font-size: 20px;
+  color: white;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .hamburgerButton {
+    width: 44px;
+    height: 44px;
+  }
+}

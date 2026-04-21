@@ -227,7 +227,7 @@ export default function CallsPage() {
 
         <Content
           style={{
-            padding: "32px",
+            padding: "16px",
             background: "#0f111a",
             display: "flex",
             flexDirection: "column",
@@ -291,7 +291,7 @@ export default function CallsPage() {
               />
             </div>
 
-            <UserList users={filteredUsers} onCallClick={handleCallClick} />
+            <UserList users={filteredUsers} onCallClick={handleCallClick} currentUserId={user.uid ?? undefined} />
 
             <div style={{ marginTop: "32px", textAlign: "center" }}>
               <Text type="secondary" style={{ color: "rgba(255, 255, 255, 0.4)" }}>

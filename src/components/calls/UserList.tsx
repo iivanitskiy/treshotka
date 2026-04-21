@@ -11,9 +11,10 @@ const { useBreakpoint } = Grid;
 interface UserListProps {
   users: FirebaseUser[];
   onCallClick?: (userId: string) => void;
+  currentUserId?: string;
 }
 
-export default function UserList({ users, onCallClick }: UserListProps) {
+export default function UserList({ users, onCallClick, currentUserId }: UserListProps) {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
@@ -71,14 +72,17 @@ export default function UserList({ users, onCallClick }: UserListProps) {
                 </div>
               </div>
             </div>
-            <Button
-              type="primary"
-              icon={<PhoneOutlined />}
-              onClick={() => handleCallClick(user.uid)}
-              className={`${styles.callButton} ${isMobile ? styles.callButtonMobile : ""}`}
-            >
-              Позвонить
-            </Button>
+            {user.uid !== currentUserId && (
+              <Button
+                type="primary"
+                icon={<PhoneOutlined />}
+                onClick={() => handleCallClick(user.uid)}
+                disabled={!user.online}
+                className={`${styles.callButton} ${isMobile ? styles.callButtonMobile : ""} ${!user.online ? styles.callButtonDisabled : ""}`}
+              >
+                Позвонить
+              </Button>
+            )}
           </div>
         ))}
       </Flex>

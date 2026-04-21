@@ -13,3 +13,21 @@
   background: transparent;
   padding: 24px;
 }
+
+@media (max-width: 768px) {
+  .roomLayout {
+    flex-direction: column;
+  }
+
+  .roomContent {
+    padding: 16px;
+    flex: 1;
+  }
+
+  .roomSidebar {
+    padding: 16px;
+    width: 100% !important;
+    max-width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
