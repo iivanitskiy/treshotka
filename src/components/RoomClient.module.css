@@ -1,6 +1,6 @@
 .roomLayout {
   height: 100vh;
-  background: transparent;
+  background: #0f111a;
 }
 
 .roomContent {
@@ -10,13 +10,14 @@
 }
 
 .roomSidebar {
-  background: transparent;
+  background: #0f111a;
   padding: 24px;
 }
 
 @media (max-width: 768px) {
   .roomLayout {
     flex-direction: column;
+    background: #0f111a;
   }
 
   .roomContent {
@@ -29,5 +30,6 @@
     width: 100% !important;
     max-width: 100%;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0f111a;
   }
 }

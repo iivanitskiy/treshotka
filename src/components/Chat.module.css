@@ -1,10 +1,11 @@
 .senderName {
   font-size: 12px;
-  color: #9ca3af;
+  color: #d1d5db !important;
 }
 
 .senderNameMobile {
   font-size: 10px;
+  color: #d1d5db !important;
 }
 
 .deleteIcon {
