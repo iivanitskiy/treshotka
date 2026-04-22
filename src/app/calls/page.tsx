@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 import {
@@ -30,7 +30,9 @@ import styles from "./calls.module.css";
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
-import { sendCallRequest, answerCall, rejectCall, endCall, monitorCall, isUserOnCall } from "@/lib/services/callService";
+import { endCall, monitorCall, isUserOnCall } from "@/lib/services/callService";
+import { db } from "@/lib/firebase";
+import { collection, doc, setDoc, addDoc, onSnapshot, getDoc } from "firebase/firestore";
 
 export default function CallsPage() {
   const router = useRouter();
@@ -62,7 +64,6 @@ export default function CallsPage() {
 
 
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
@@ -92,7 +93,7 @@ export default function CallsPage() {
   }, []);
 
 
-  const initializePeerConnection = () => {
+  const initializePeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
@@ -111,13 +112,13 @@ export default function CallsPage() {
     
     pc.onicecandidate = async (event) => {
       if (event.candidate && currentCall) {
-        await db.collection('calls').doc(currentCall.userId).collection('candidates')
-          .add(event.candidate.toJSON());
+        const candidatesRef = collection(doc(db, 'calls', currentCall.userId), 'candidates');
+        await addDoc(candidatesRef, event.candidate.toJSON());
       }
     };
 
     return pc;
-  };
+  }, [currentCall]);
 
   const getLocalStream = async (withVideo: boolean = false) => {
     try {
@@ -138,10 +139,12 @@ export default function CallsPage() {
   };
 
   const handleCallClick = async (userId: string) => {
-    if (currentCall) return; 
+    if (currentCall) return;
     
     const callee = users.find(u => u.uid === userId);
     if (!callee) return;
+    
+    if (!user.uid) return;
     
     try {
       const isBusy = await isUserOnCall(userId);
@@ -160,7 +163,8 @@ export default function CallsPage() {
       const offer = await peerConnection.current.createOffer();
       await peerConnection.current.setLocalDescription(offer);
       
-      await db.collection('calls').doc(userId).set({
+      const callRef = doc(db, 'calls', userId);
+      await setDoc(callRef, {
         offer: {
           type: offer.type,
           sdp: offer.sdp
@@ -176,16 +180,16 @@ export default function CallsPage() {
         status: 'calling'
       });
       
-      callUnsubscribe.current = db.collection('calls').doc(user.uid)
-        .onSnapshot(async (doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            if (data?.answer) {
-              await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(data.answer));
-              setCurrentCall(prev => prev ? { ...prev, status: 'active' } : null);
-            }
+      const answerCallRef = doc(db, 'calls', user.uid);
+      callUnsubscribe.current = onSnapshot(answerCallRef, async (doc) => {
+        if (doc.exists()) {
+          const data = doc.data();
+          if (data?.answer) {
+            await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(data.answer));
+            setCurrentCall(prev => prev ? { ...prev, status: 'active' } : null);
           }
-        });
+        }
+      });
       
     } catch (err) {
       console.error('Error making call:', err);
@@ -203,7 +207,7 @@ export default function CallsPage() {
   };
 
   const handleAnswerCall = async () => {
-    if (!currentCall || !peerConnection.current) return;
+    if (!currentCall || !peerConnection.current || !user.uid) return;
     
     try {
       const stream = await getLocalStream();
@@ -211,7 +215,8 @@ export default function CallsPage() {
         peerConnection.current?.addTrack(track, stream);
       });
       
-      const callDoc = await db.collection('calls').doc(user.uid).get();
+      const callRef = doc(db, 'calls', user.uid);
+      const callDoc = await getDoc(callRef);
       const data = callDoc.data();
       if (data?.offer) {
         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -220,22 +225,23 @@ export default function CallsPage() {
       const answer = await peerConnection.current.createAnswer();
       await peerConnection.current.setLocalDescription(answer);
       
-      await db.collection('calls').doc(currentCall.userId).set({
+      const answerRef = doc(db, 'calls', currentCall.userId);
+      await setDoc(answerRef, {
         answer: {
           type: answer.type,
           sdp: answer.sdp
         }
       }, { merge: true });
       
-      db.collection('calls').doc(currentCall.userId).collection('candidates')
-        .onSnapshot(snapshot => {
-          snapshot.docChanges().forEach(async (change) => {
-            if (change.type === 'added') {
-              const data = change.doc.data();
-              await peerConnection.current?.addIceCandidate(new RTCIceCandidate(data));
-            }
-          });
+      const candidatesRef = collection(doc(db, 'calls', currentCall.userId), 'candidates');
+      onSnapshot(candidatesRef, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+          if (change.type === 'added') {
+            const data = change.doc.data();
+            await peerConnection.current?.addIceCandidate(new RTCIceCandidate(data));
+          }
         });
+      });
       
       setCurrentCall(prev => prev ? { ...prev, status: 'active' } : null);
       
@@ -298,9 +304,12 @@ export default function CallsPage() {
   };
 
   useEffect(() => {
-    if (!user.uid) return;
+    const uid = user.uid;
+    if (!uid) return;
     
-    const unsubscribe = monitorCall(user.uid, (callData) => {
+    let candidatesUnsubscribe: (() => void) | null = null;
+    
+    const unsubscribe = monitorCall(uid, (callData) => {
       if (callData && callData.status === 'ringing') {
         const caller = users.find(u => u.uid === callData.callerId);
         if (caller) {
@@ -312,29 +321,36 @@ export default function CallsPage() {
           
           peerConnection.current = initializePeerConnection();
           
-          db.collection('calls').doc(user.uid).collection('candidates')
-            .onSnapshot(snapshot => {
-              snapshot.docChanges().forEach(async (change) => {
-                if (change.type === 'added') {
-                  const data = change.doc.data();
-                  await peerConnection.current?.addIceCandidate(new RTCIceCandidate(data));
-                }
-              });
+          const candidatesRef = collection(doc(db, 'calls', uid), 'candidates');
+          candidatesUnsubscribe = onSnapshot(candidatesRef, (snapshot) => {
+            snapshot.docChanges().forEach(async (change) => {
+              if (change.type === 'added') {
+                const data = change.doc.data();
+                await peerConnection.current?.addIceCandidate(new RTCIceCandidate(data));
+              }
             });
+          });
         }
       } else if (!callData && currentCall?.status === 'receiving') {
         setCurrentCall(null);
+        if (candidatesUnsubscribe) {
+          candidatesUnsubscribe();
+          candidatesUnsubscribe = null;
+        }
       }
     });
     
     return () => {
       unsubscribe();
+      if (candidatesUnsubscribe) {
+        candidatesUnsubscribe();
+      }
       if (peerConnection.current) {
         peerConnection.current.close();
         peerConnection.current = null;
       }
     };
-  }, [user.uid, users]);
+  }, [user.uid, users, currentCall, initializePeerConnection]);
 
   if (user.isLoading) {
     return (

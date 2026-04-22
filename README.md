@@ -1,10 +1,10 @@
 # 🎥 Трещотка
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-10.0-orange?style=flat-square&logo=firebase)](https://firebase.google.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-12-orange?style=flat-square&logo=firebase)](https://firebase.google.com/)
 [![Agora](https://img.shields.io/badge/Agora-RTC-00b4d8?style=flat-square&logo=agora)](https://www.agora.io/)
-[![Ant Design](https://img.shields.io/badge/Ant%20Design-5.0-0170fe?style=flat-square&logo=ant-design)](https://ant.design/)
+[![Ant Design](https://img.shields.io/badge/Ant%20Design-6-0170fe?style=flat-square&logo=ant-design)](https://ant.design/)
 
 > **Компактное приложение для видеочата** , аудио звонков и текстового чата с функцией записи трансляций
 
