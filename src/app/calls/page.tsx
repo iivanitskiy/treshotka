@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 import {
@@ -21,12 +21,16 @@ import { auth } from "@/lib/firebase";
 import { clearUser } from "@/lib/features/auth/authSlice";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import UserList from "@/components/calls/UserList";
+import CallModal from "@/components/calls/CallModal";
+import VideoCallWindow from "@/components/calls/VideoCallWindow";
 import { subscribeToUsers, FirebaseUser } from "@/lib/services/userService";
 import { clearPresence } from "@/lib/services/presenceService";
 import styles from "./calls.module.css";
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
+
+import { sendCallRequest, answerCall, rejectCall, endCall, monitorCall, isUserOnCall } from "@/lib/services/callService";
 
 export default function CallsPage() {
   const router = useRouter();
@@ -44,6 +48,25 @@ export default function CallsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const { xs } = Grid.useBreakpoint();
+
+
+  const [currentCall, setCurrentCall] = useState<{
+    userId: string;
+    name: string;
+    status: 'calling' | 'receiving' | 'active';
+  } | null>(null);
+
+
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+
+
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+
+
+  const peerConnection = useRef<RTCPeerConnection | null>(null);
+  const callUnsubscribe = useRef<(() => void) | null>(null);
 
   const handleLogout = () => {
     clearPresence();
@@ -68,10 +91,250 @@ export default function CallsPage() {
     return () => unsubscribe();
   }, []);
 
-  const handleCallClick = (userId: string) => {
-    const user = users.find(u => u.uid === userId);
-    alert(`Инициируется звонок с ${user?.displayName}. Функционал звонков находится в разработке.`);
+
+  const initializePeerConnection = () => {
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    });
+
+  
+    pc.ontrack = (event) => {
+      if (event.track.kind === 'video' || event.track.kind === 'audio') {
+        const remoteStream = event.streams[0];
+        setRemoteStream(remoteStream);
+      }
+    };
+
+    
+    pc.onicecandidate = async (event) => {
+      if (event.candidate && currentCall) {
+        await db.collection('calls').doc(currentCall.userId).collection('candidates')
+          .add(event.candidate.toJSON());
+      }
+    };
+
+    return pc;
   };
+
+  const getLocalStream = async (withVideo: boolean = false) => {
+    try {
+      if (typeof window === 'undefined' || !navigator || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Media devices not available');
+      }
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: withVideo
+      });
+      setLocalStream(stream);
+      return stream;
+    } catch (err) {
+      console.error('Error accessing media devices:', err);
+      throw err;
+    }
+  };
+
+  const handleCallClick = async (userId: string) => {
+    if (currentCall) return; 
+    
+    const callee = users.find(u => u.uid === userId);
+    if (!callee) return;
+    
+    try {
+      const isBusy = await isUserOnCall(userId);
+      if (isBusy) {
+        alert('Пользователь уже находится в другом вызове');
+        return;
+      }
+      
+      peerConnection.current = initializePeerConnection();
+      
+      const stream = await getLocalStream();
+      stream.getTracks().forEach(track => {
+        peerConnection.current?.addTrack(track, stream);
+      });
+      
+      const offer = await peerConnection.current.createOffer();
+      await peerConnection.current.setLocalDescription(offer);
+      
+      await db.collection('calls').doc(userId).set({
+        offer: {
+          type: offer.type,
+          sdp: offer.sdp
+        },
+        callerId: user.uid,
+        callerName: user.displayName,
+        timestamp: new Date().getTime()
+      });
+      
+      setCurrentCall({
+        userId,
+        name: callee.displayName,
+        status: 'calling'
+      });
+      
+      callUnsubscribe.current = db.collection('calls').doc(user.uid)
+        .onSnapshot(async (doc) => {
+          if (doc.exists) {
+            const data = doc.data();
+            if (data?.answer) {
+              await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(data.answer));
+              setCurrentCall(prev => prev ? { ...prev, status: 'active' } : null);
+            }
+          }
+        });
+      
+    } catch (err) {
+      console.error('Error making call:', err);
+      setCurrentCall(null);
+      if (peerConnection.current) {
+        peerConnection.current.close();
+        peerConnection.current = null;
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        setLocalStream(null);
+      }
+      alert('Не удалось установить соединение');
+    }
+  };
+
+  const handleAnswerCall = async () => {
+    if (!currentCall || !peerConnection.current) return;
+    
+    try {
+      const stream = await getLocalStream();
+      stream.getTracks().forEach(track => {
+        peerConnection.current?.addTrack(track, stream);
+      });
+      
+      const callDoc = await db.collection('calls').doc(user.uid).get();
+      const data = callDoc.data();
+      if (data?.offer) {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+      }
+      
+      const answer = await peerConnection.current.createAnswer();
+      await peerConnection.current.setLocalDescription(answer);
+      
+      await db.collection('calls').doc(currentCall.userId).set({
+        answer: {
+          type: answer.type,
+          sdp: answer.sdp
+        }
+      }, { merge: true });
+      
+      db.collection('calls').doc(currentCall.userId).collection('candidates')
+        .onSnapshot(snapshot => {
+          snapshot.docChanges().forEach(async (change) => {
+            if (change.type === 'added') {
+              const data = change.doc.data();
+              await peerConnection.current?.addIceCandidate(new RTCIceCandidate(data));
+            }
+          });
+        });
+      
+      setCurrentCall(prev => prev ? { ...prev, status: 'active' } : null);
+      
+    } catch (err) {
+      console.error('Error answering call:', err);
+      handleRejectCall();
+    }
+  };
+
+  const handleRejectCall = async () => {
+    if (currentCall) {
+      await endCall(currentCall.userId);
+    }
+    if (callUnsubscribe.current) {
+      callUnsubscribe.current();
+      callUnsubscribe.current = null;
+    }
+    setCurrentCall(null);
+    if (peerConnection.current) {
+      peerConnection.current.close();
+      peerConnection.current = null;
+    }
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      setLocalStream(null);
+    }
+    setRemoteStream(null);
+  };
+
+  const handleEndCall = async () => {
+    await handleRejectCall();
+  };
+
+  const toggleVideo = async () => {
+    if (!currentCall || !peerConnection.current || !localStream) return;
+    
+    const videoTrack = localStream.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !videoTrack.enabled;
+      setIsVideoEnabled(videoTrack.enabled);
+    } else {
+      try {
+        const stream = await getLocalStream(true);
+        const newVideoTrack = stream.getVideoTracks()[0];
+        if (newVideoTrack && peerConnection.current.getSenders()) {
+          const videoSender = peerConnection.current.getSenders().find(s => s.track?.kind === 'video');
+          if (videoSender) {
+            videoSender.replaceTrack(newVideoTrack);
+          } else {
+            peerConnection.current.addTrack(newVideoTrack, stream);
+          }
+          localStream.addTrack(newVideoTrack);
+        }
+        setIsVideoEnabled(true);
+      } catch (err) {
+        console.error('Error enabling video:', err);
+        alert('Не удалось включить камеру');
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!user.uid) return;
+    
+    const unsubscribe = monitorCall(user.uid, (callData) => {
+      if (callData && callData.status === 'ringing') {
+        const caller = users.find(u => u.uid === callData.callerId);
+        if (caller) {
+          setCurrentCall({
+            userId: callData.callerId,
+            name: callData.callerName,
+            status: 'receiving'
+          });
+          
+          peerConnection.current = initializePeerConnection();
+          
+          db.collection('calls').doc(user.uid).collection('candidates')
+            .onSnapshot(snapshot => {
+              snapshot.docChanges().forEach(async (change) => {
+                if (change.type === 'added') {
+                  const data = change.doc.data();
+                  await peerConnection.current?.addIceCandidate(new RTCIceCandidate(data));
+                }
+              });
+            });
+        }
+      } else if (!callData && currentCall?.status === 'receiving') {
+        setCurrentCall(null);
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+      if (peerConnection.current) {
+        peerConnection.current.close();
+        peerConnection.current = null;
+      }
+    };
+  }, [user.uid, users]);
 
   if (user.isLoading) {
     return (
@@ -299,6 +562,43 @@ export default function CallsPage() {
               </Text>
             </div>
           </div>
+
+          {/* Модальное окно для входящего вызова */}
+          <CallModal
+            open={currentCall?.status === 'receiving'}
+            onAccept={handleAnswerCall}
+            onReject={handleRejectCall}
+            callerName={currentCall?.name || ''}
+          />
+
+          {/* Окно активного вызова */}
+          {(currentCall?.status === 'calling' || currentCall?.status === 'active') && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: 'rgba(0, 0, 0, 0.9)',
+                zIndex: 1000,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <div style={{ width: '80%', maxWidth: '800px' }}>
+                <VideoCallWindow
+                  localStream={localStream}
+                  remoteStream={remoteStream}
+                  isVideoEnabled={isVideoEnabled}
+                  isCallActive={currentCall?.status === 'active'}
+                  onToggleVideo={toggleVideo}
+                  onEndCall={handleEndCall}
+                />
+              </div>
+            </div>
+          )}
 
         </Content>
       </Layout>
