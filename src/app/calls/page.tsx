@@ -139,12 +139,23 @@ export default function CallsPage() {
   };
 
   const handleCallClick = async (userId: string) => {
-    if (currentCall) return;
+    console.log('handleCallClick called for userId:', userId);
+    if (currentCall) {
+      console.log('Already in a call', currentCall);
+      return;
+    }
     
     const callee = users.find(u => u.uid === userId);
-    if (!callee) return;
+    if (!callee) {
+      console.log('Callee not found');
+      return;
+    }
     
-    if (!user.uid) return;
+    if (!user.uid || !user.displayName) {
+      console.error('User not properly authenticated', user);
+      return;
+    }
+    console.log('Starting call to', callee.displayName);
     
     try {
       const isBusy = await isUserOnCall(userId);
@@ -181,12 +192,27 @@ export default function CallsPage() {
       });
       
       const answerCallRef = doc(db, 'calls', user.uid);
+      console.log('Listening for answer on document:', answerCallRef.path);
       callUnsubscribe.current = onSnapshot(answerCallRef, async (doc) => {
+        console.log('Answer document snapshot:', doc.exists());
         if (doc.exists()) {
           const data = doc.data();
+          console.log('Answer data:', data);
           if (data?.answer) {
+            console.log('Answer received, setting remote description');
             await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(data.answer));
-            setCurrentCall(prev => prev ? { ...prev, status: 'active' } : null);
+            setCurrentCall(prev => {
+              if (!prev) {
+                console.warn('No current call when answer received');
+                return null;
+              }
+              if (prev.status === 'active') {
+                console.log('Call already active');
+                return prev;
+              }
+              console.log('Updating call status to active');
+              return { ...prev, status: 'active' };
+            });
           }
         }
       });
