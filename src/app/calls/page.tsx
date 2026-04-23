@@ -58,6 +58,10 @@ export default function CallsPage() {
     status: 'calling' | 'receiving' | 'active';
   } | null>(null);
 
+  useEffect(() => {
+    console.log('currentCall changed:', currentCall);
+  }, [currentCall]);
+
 
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -183,7 +187,7 @@ export default function CallsPage() {
         callerId: user.uid,
         callerName: user.displayName,
         timestamp: new Date().getTime(),
-        status: 'calling'
+        status: 'ringing'
       });
       
       setCurrentCall({
@@ -349,7 +353,9 @@ export default function CallsPage() {
     let candidatesUnsubscribe: (() => void) | null = null;
     
     const unsubscribe = monitorCall(uid, (callData) => {
-      if (callData && callData.status === 'ringing') {
+      console.log('monitorCall received data:', callData);
+      if (callData && (callData.status === 'ringing' || (callData as any).status === 'calling')) {
+        console.log('Incoming call from:', callData.callerName);
         const caller = users.find(u => u.uid === callData.callerId);
         if (caller) {
           setCurrentCall({
@@ -371,6 +377,7 @@ export default function CallsPage() {
           });
         }
       } else if (!callData && currentCall?.status === 'receiving') {
+        console.log('Call ended or rejected');
         setCurrentCall(null);
         if (candidatesUnsubscribe) {
           candidatesUnsubscribe();

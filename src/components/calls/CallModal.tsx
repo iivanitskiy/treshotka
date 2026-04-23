@@ -12,6 +12,7 @@ interface CallModalProps {
 }
 
 export default function CallModal({ open, onAccept, onReject, callerName }: CallModalProps) {
+  console.log('CallModal rendered, open:', open, 'callerName:', callerName);
   return (
     <Modal
       open={open}
