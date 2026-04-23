@@ -182,7 +182,8 @@ export default function CallsPage() {
         },
         callerId: user.uid,
         callerName: user.displayName,
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
+        status: 'calling'
       });
       
       setCurrentCall({
@@ -198,6 +199,7 @@ export default function CallsPage() {
         if (doc.exists()) {
           const data = doc.data();
           console.log('Answer data:', data);
+          // Если есть answer, устанавливаем remote description
           if (data?.answer) {
             console.log('Answer received, setting remote description');
             await peerConnection.current?.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -211,6 +213,14 @@ export default function CallsPage() {
                 return prev;
               }
               console.log('Updating call status to active');
+              return { ...prev, status: 'active' };
+            });
+          }
+          // Если статус active, обновляем локальный статус
+          if (data?.status === 'active') {
+            setCurrentCall(prev => {
+              if (!prev || prev.status === 'active') return prev;
+              console.log('Status updated to active via status field');
               return { ...prev, status: 'active' };
             });
           }
@@ -252,12 +262,15 @@ export default function CallsPage() {
       await peerConnection.current.setLocalDescription(answer);
       
       const answerRef = doc(db, 'calls', currentCall.userId);
+      console.log('Writing answer to document:', answerRef.path, answer);
       await setDoc(answerRef, {
         answer: {
           type: answer.type,
           sdp: answer.sdp
-        }
+        },
+        status: 'active'
       }, { merge: true });
+      console.log('Answer written successfully');
       
       const candidatesRef = collection(doc(db, 'calls', currentCall.userId), 'candidates');
       onSnapshot(candidatesRef, (snapshot) => {
