@@ -1,4 +1,4 @@
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import {
   collection,
   doc,
@@ -61,9 +61,17 @@ export async function setUserCallBusy(
   );
 }
 
+/** Сброс busy — только свой документ (правила Firestore не позволяют писать чужой) */
 export async function clearUserCallBusy(userId: string): Promise<void> {
+  const uid = auth.currentUser?.uid;
+  if (!uid || uid !== userId) return;
+
   try {
-    await setDoc(callBusyDoc(userId), { busy: false, updatedAt: serverTimestamp() });
+    await setDoc(
+      callBusyDoc(userId),
+      { busy: false, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
   } catch (e) {
     console.warn("clearUserCallBusy:", e);
   }

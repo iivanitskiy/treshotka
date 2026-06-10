@@ -59,6 +59,8 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
   phaseRef.current = phase;
   const peerUidRef = useRef<string | null>(null);
   const shownIncomingIdRef = useRef<string | null>(null);
+  const mediaNegotiatedRef = useRef(false);
+  const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearRingTimer = () => {
     if (ringTimerRef.current) {
@@ -86,11 +88,13 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
       cleaningRef.current = true;
 
       const callId = callIdRef.current;
-      const idsToClear = new Set<string>();
-      if (userId) idsToClear.add(userId);
-      if (peerUidRef.current) idsToClear.add(peerUidRef.current);
       peerUidRef.current = null;
-      await Promise.all([...idsToClear].map((id) => clearUserCallBusy(id)));
+      mediaNegotiatedRef.current = false;
+      if (disconnectTimerRef.current) {
+        clearTimeout(disconnectTimerRef.current);
+        disconnectTimerRef.current = null;
+      }
+      if (userId) await clearUserCallBusy(userId);
 
       teardownMedia();
 
@@ -132,8 +136,34 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
           }
         },
         (state) => {
-          if (state === "connected") setPhase("connected");
-          if (state === "failed" || state === "disconnected") {
+          if (state === "connected") {
+            if (disconnectTimerRef.current) {
+              clearTimeout(disconnectTimerRef.current);
+              disconnectTimerRef.current = null;
+            }
+            setPhase("connected");
+            return;
+          }
+
+          if (state === "disconnected" && mediaNegotiatedRef.current) {
+            if (disconnectTimerRef.current) {
+              clearTimeout(disconnectTimerRef.current);
+            }
+            disconnectTimerRef.current = setTimeout(() => {
+              const pc = pcManagerRef.current?.connection;
+              if (
+                pc &&
+                (pc.connectionState === "disconnected" ||
+                  pc.connectionState === "failed")
+              ) {
+                message.error("Соединение потеряно");
+                void finalizeCall("failed");
+              }
+            }, 8000);
+            return;
+          }
+
+          if (state === "failed" && mediaNegotiatedRef.current) {
             message.error("Соединение потеряно");
             void finalizeCall("failed");
           }
@@ -182,6 +212,7 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
           try {
             clearRingTimer();
             await pcManagerRef.current.applyAnswer(call.answer);
+            mediaNegotiatedRef.current = true;
             setPhase("connected");
           } catch (e) {
             console.error(e);
@@ -302,6 +333,7 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
       }
 
       const answer = await manager.createAnswer(offer);
+      mediaNegotiatedRef.current = true;
       await setCallAnswer(call.id, answer);
       wireCallSignaling(call.id, call.callerId, "callee");
       setActiveCall({ ...call, status: "accepted", answer });
