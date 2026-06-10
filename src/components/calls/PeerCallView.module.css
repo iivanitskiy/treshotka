@@ -52,6 +52,14 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   z-index: 2;
   background: #1a1d2e;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.localPipDragging {
+  cursor: grabbing;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
 }
 
 .localPip video {
@@ -80,6 +88,14 @@
   color: white;
   font-size: 14px;
   z-index: 2;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.statusBarHidden {
+  opacity: 0;
 }
 
 .controls {
