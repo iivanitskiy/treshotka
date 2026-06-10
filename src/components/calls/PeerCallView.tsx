@@ -75,20 +75,23 @@ export default function PeerCallView({
         <div className={styles.statusBar}>
           {statusLabel} — {peerName}
         </div>
-        {remoteStream ? (
-          <VideoElement
-            stream={remoteStream}
-            className={styles.remoteVideo}
-          />
-        ) : (
-          <div className={styles.placeholder}>Ожидание видео…</div>
-        )}
+        <div className={styles.remoteStage}>
+          {remoteStream ? (
+            <VideoElement
+              stream={remoteStream}
+              className={styles.remoteVideo}
+            />
+          ) : (
+            <div className={styles.placeholder}>Ожидание видео…</div>
+          )}
+        </div>
         <div className={styles.localPip}>
-          {localStream ? (
+          {localStream && cameraOn ? (
             <VideoElement stream={localStream} muted />
           ) : (
-            <div className={styles.placeholder} style={{ fontSize: 12 }}>
-              Камера
+            <div className={styles.pipPlaceholder}>
+              <VideoCameraAddOutlined />
+              <span>Камера выкл.</span>
             </div>
           )}
         </div>

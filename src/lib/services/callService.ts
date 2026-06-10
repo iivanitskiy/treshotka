@@ -61,7 +61,6 @@ export async function setUserCallBusy(
   );
 }
 
-/** Сброс busy — только свой документ (правила Firestore не позволяют писать чужой) */
 export async function clearUserCallBusy(userId: string): Promise<void> {
   const uid = auth.currentUser?.uid;
   if (!uid || uid !== userId) return;
@@ -140,6 +139,7 @@ export async function setCallOffer(
 ): Promise<void> {
   await updateDoc(callDoc(callId), {
     offer,
+    answer: null,
     updatedAt: serverTimestamp(),
   });
 }

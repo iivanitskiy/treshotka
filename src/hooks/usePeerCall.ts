@@ -46,7 +46,7 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [micOn, setMicOn] = useState(true);
-  const [cameraOn, setCameraOn] = useState(true);
+  const [cameraOn, setCameraOn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const pcManagerRef = useRef<PeerConnectionManager | null>(null);
@@ -61,6 +61,9 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
   const shownIncomingIdRef = useRef<string | null>(null);
   const mediaNegotiatedRef = useRef(false);
   const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const appliedAnswerSdpRef = useRef<string | null>(null);
+  const appliedRemoteOfferSdpRef = useRef<string | null>(null);
+  const signalingBusyRef = useRef(false);
 
   const clearRingTimer = () => {
     if (ringTimerRef.current) {
@@ -90,6 +93,9 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
       const callId = callIdRef.current;
       peerUidRef.current = null;
       mediaNegotiatedRef.current = false;
+      appliedAnswerSdpRef.current = null;
+      appliedRemoteOfferSdpRef.current = null;
+      signalingBusyRef.current = false;
       if (disconnectTimerRef.current) {
         clearTimeout(disconnectTimerRef.current);
         disconnectTimerRef.current = null;
@@ -112,6 +118,8 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
       setActiveCall(null);
       setIncomingCall(null);
       setPeer(null);
+      setMicOn(true);
+      setCameraOn(false);
 
       setTimeout(() => {
         setPhase("idle");
@@ -185,7 +193,7 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
       );
 
       unsubCallRef.current?.();
-      unsubCallRef.current = subscribeToCall(callId, async (call) => {
+      unsubCallRef.current = subscribeToCall(callId, (call) => {
         if (!call || !pcManagerRef.current) return;
 
         if (call.status === "rejected") {
@@ -208,19 +216,49 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
           return;
         }
 
-        if (role === "caller" && call.answer && pcManagerRef.current) {
+        if (signalingBusyRef.current) return;
+
+        void (async () => {
+          const manager = pcManagerRef.current;
+          if (!manager) return;
+
+          signalingBusyRef.current = true;
           try {
-            clearRingTimer();
-            await pcManagerRef.current.applyAnswer(call.answer);
-            mediaNegotiatedRef.current = true;
-            setPhase("connected");
+            const pc = manager.connection;
+            if (!pc) return;
+
+            if (
+              call.status === "accepted" &&
+              call.offer?.sdp &&
+              call.offer.sdp !== appliedRemoteOfferSdpRef.current &&
+              call.offer.sdp !== pc.localDescription?.sdp
+            ) {
+              const answer = await manager.applyRemoteOffer(call.offer);
+              if (answer) {
+                appliedRemoteOfferSdpRef.current = call.offer.sdp;
+                appliedAnswerSdpRef.current = null;
+                await setCallAnswer(callId, answer);
+              }
+            }
+
+            if (
+              call.answer?.sdp &&
+              call.answer.sdp !== appliedAnswerSdpRef.current
+            ) {
+              const applied = await manager.applyAnswer(call.answer);
+              if (applied) {
+                appliedAnswerSdpRef.current = call.answer.sdp;
+                clearRingTimer();
+                mediaNegotiatedRef.current = true;
+                setPhase("connected");
+              }
+            }
           } catch (e) {
             console.error(e);
+          } finally {
+            signalingBusyRef.current = false;
           }
-        }
-
-        if (role === "callee" && call.offer && !call.answer) {
-        }
+        })();
       });
     },
     [finalizeCall]
@@ -255,9 +293,8 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
         }
 
         const manager = getOrCreateManager();
-        const stream = await manager.acquireLocalMedia(true, true);
+        const stream = await manager.acquireLocalMedia(true, false);
         setLocalStream(stream);
-        setCameraOn(stream.getVideoTracks().length > 0);
 
         const callId = await createCall({
           callerId: userId,
@@ -315,9 +352,8 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
 
     try {
       const manager = getOrCreateManager();
-      const stream = await manager.acquireLocalMedia(true, true);
+      const stream = await manager.acquireLocalMedia(true, false);
       setLocalStream(stream);
-      setCameraOn(stream.getVideoTracks().length > 0);
 
       let offer = call.offer;
       if (!offer) {
@@ -334,6 +370,7 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
 
       const answer = await manager.createAnswer(offer);
       mediaNegotiatedRef.current = true;
+      appliedRemoteOfferSdpRef.current = offer.sdp ?? null;
       await setCallAnswer(call.id, answer);
       wireCallSignaling(call.id, call.callerId, "callee");
       setActiveCall({ ...call, status: "accepted", answer });
@@ -434,12 +471,46 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
     });
   }, []);
 
-  const toggleCamera = useCallback(() => {
-    setCameraOn((prev) => {
-      pcManagerRef.current?.setCameraEnabled(!prev);
-      return !prev;
-    });
+  const syncLocalStream = useCallback(() => {
+    const stream = pcManagerRef.current?.stream;
+    setLocalStream(stream ? new MediaStream(stream.getTracks()) : null);
   }, []);
+
+  const pushUpdatedOffer = useCallback(async () => {
+    const manager = pcManagerRef.current;
+    const callId = callIdRef.current;
+    if (!manager?.connection || !callId) return;
+
+    const offer = await manager.createRenegotiationOffer();
+    appliedAnswerSdpRef.current = null;
+    await setCallOffer(callId, offer);
+  }, []);
+
+  const toggleCamera = useCallback(() => {
+    void (async () => {
+      const manager = pcManagerRef.current;
+      if (!manager) return;
+
+      try {
+        if (cameraOn) {
+          manager.disableCamera();
+          setCameraOn(false);
+          syncLocalStream();
+          await pushUpdatedOffer();
+          return;
+        }
+
+        await manager.enableCamera();
+        setCameraOn(true);
+        syncLocalStream();
+        await pushUpdatedOffer();
+      } catch (e) {
+        const msg =
+          e instanceof Error ? e.message : "Не удалось включить камеру";
+        message.error(msg);
+      }
+    })();
+  }, [cameraOn, syncLocalStream, pushUpdatedOffer]);
 
   return {
     phase,

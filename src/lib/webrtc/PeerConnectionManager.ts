@@ -173,6 +173,67 @@ export class PeerConnectionManager {
     });
   }
 
+  hasVideoTrack(): boolean {
+    return (
+      this.localStream?.getVideoTracks().some((t) => t.readyState === "live") ??
+      false
+    );
+  }
+
+  async enableCamera(): Promise<void> {
+    if (this.hasVideoTrack()) {
+      this.setCameraEnabled(true);
+      return;
+    }
+
+    const videoStream = await this.getUserMediaWithRetry(
+      { video: { facingMode: "user" }, audio: false },
+      3
+    );
+    const videoTrack = videoStream.getVideoTracks()[0];
+    if (!videoTrack) throw new Error("Не удалось получить видеопоток");
+
+    if (!this.localStream) {
+      this.localStream = new MediaStream();
+    }
+    this.localStream.addTrack(videoTrack);
+
+    if (this.pc) {
+      const videoSender = this.pc
+        .getSenders()
+        .find((s) => s.track?.kind === "video");
+      if (videoSender) {
+        await videoSender.replaceTrack(videoTrack);
+      } else {
+        this.pc.addTrack(videoTrack, this.localStream);
+      }
+    }
+  }
+
+  disableCamera(): void {
+    const tracks = [...(this.localStream?.getVideoTracks() ?? [])];
+    for (const track of tracks) {
+      track.stop();
+      this.localStream?.removeTrack(track);
+    }
+    const videoSender = this.pc
+      ?.getSenders()
+      .find((s) => s.track?.kind === "video");
+    if (videoSender) {
+      void videoSender.replaceTrack(null);
+    }
+  }
+
+  async createRenegotiationOffer(): Promise<RTCSessionDescriptionInit> {
+    if (!this.pc) throw new Error("PeerConnection не создан");
+    const offer = await this.pc.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: true,
+    });
+    await this.pc.setLocalDescription(offer);
+    return offer;
+  }
+
   async createOffer(): Promise<RTCSessionDescriptionInit> {
     const pc = this.createPeerConnection();
     this.attachLocalTracks();
@@ -193,10 +254,36 @@ export class PeerConnectionManager {
     return answer;
   }
 
-  async applyAnswer(answer: RTCSessionDescriptionInit): Promise<void> {
+  async applyAnswer(answer: RTCSessionDescriptionInit): Promise<boolean> {
     if (!this.pc) throw new Error("PeerConnection не создан");
+    if (!answer.sdp) return false;
+
+    const { signalingState, remoteDescription } = this.pc;
+
+    if (remoteDescription?.sdp === answer.sdp) return false;
+
+    if (signalingState !== "have-local-offer") return false;
+
     await this.pc.setRemoteDescription(new RTCSessionDescription(answer));
     await this.flushPendingIce();
+    return true;
+  }
+
+  async applyRemoteOffer(
+    offer: RTCSessionDescriptionInit
+  ): Promise<RTCSessionDescriptionInit | null> {
+    if (!this.pc || !offer.sdp) return null;
+
+    if (this.pc.remoteDescription?.sdp === offer.sdp) return null;
+
+    const state = this.pc.signalingState;
+    if (state !== "stable" && state !== "have-remote-offer") return null;
+
+    await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
+    await this.flushPendingIce();
+    const answer = await this.pc.createAnswer();
+    await this.pc.setLocalDescription(answer);
+    return answer;
   }
 
   async addIceCandidate(candidate: RTCIceCandidateInit): Promise<void> {
