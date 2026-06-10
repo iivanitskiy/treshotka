@@ -21,31 +21,102 @@ export class PeerConnectionManager {
     return this.localStream;
   }
 
+  private static isRetryableMediaError(err: unknown): boolean {
+    if (!(err instanceof DOMException)) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return /allocate|in use|busy|NotReadable/i.test(msg);
+    }
+    return (
+      err.name === "NotReadableError" ||
+      err.name === "AbortError" ||
+      /allocate/i.test(err.message)
+    );
+  }
+
+  private static mapMediaError(err: unknown, videoRequested: boolean): string {
+    const raw = err instanceof Error ? err.message : String(err);
+    if (err instanceof DOMException) {
+      if (err.name === "NotAllowedError") {
+        return "Нет доступа к камере или микрофону";
+      }
+      if (err.name === "NotFoundError") {
+        return videoRequested
+          ? "Камера или микрофон не найдены"
+          : "Микрофон не найден";
+      }
+      if (
+        err.name === "NotReadableError" ||
+        /allocate/i.test(err.message)
+      ) {
+        return "Камера занята другим приложением или вкладкой. Закройте групповой чат и попробуйте снова";
+      }
+    }
+    if (/allocate/i.test(raw)) {
+      return "Не удалось открыть камеру — возможно, она используется в другой вкладке";
+    }
+    return raw || "Не удалось получить медиа-устройства";
+  }
+
+  private async getUserMediaWithRetry(
+    constraints: MediaStreamConstraints,
+    retries = 3
+  ): Promise<MediaStream> {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        return await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (err) {
+        lastError = err;
+        const retryable = PeerConnectionManager.isRetryableMediaError(err);
+        if (!retryable || attempt === retries - 1) break;
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+      }
+    }
+    throw lastError;
+  }
+
   async acquireLocalMedia(
     audio = true,
     video = true
   ): Promise<MediaStream> {
-    if (this.localStream) return this.localStream;
-
-    try {
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio,
-        video: video
-          ? { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }
-          : false,
-      });
-      return this.localStream;
-    } catch (err) {
-      const message =
-        err instanceof DOMException
-          ? err.name === "NotAllowedError"
-            ? "Нет доступа к камере или микрофону"
-            : err.name === "NotFoundError"
-              ? "Камера или микрофон не найдены"
-              : err.message
-          : "Не удалось получить медиа-устройства";
-      throw new Error(message);
+    if (this.localStream?.active) return this.localStream;
+    if (this.localStream) {
+      this.localStream.getTracks().forEach((t) => t.stop());
+      this.localStream = null;
     }
+
+    const attempts: MediaStreamConstraints[] = [];
+    if (audio && video) {
+      attempts.push({ audio: true, video: { facingMode: "user" } });
+      attempts.push({ audio: true, video: true });
+    } else if (audio) {
+      attempts.push({ audio: true, video: false });
+    } else if (video) {
+      attempts.push({ audio: false, video: true });
+    }
+
+    if (audio && video) {
+      attempts.push({ audio: true, video: false });
+    }
+
+    let lastError: unknown;
+    for (const constraints of attempts) {
+      try {
+        this.localStream = await this.getUserMediaWithRetry(constraints);
+        return this.localStream;
+      } catch (err) {
+        lastError = err;
+        const wantsVideo =
+          typeof constraints.video === "object"
+            ? true
+            : Boolean(constraints.video);
+        if (!wantsVideo) break;
+      }
+    }
+
+    throw new Error(
+      PeerConnectionManager.mapMediaError(lastError, video)
+    );
   }
 
   createPeerConnection(): RTCPeerConnection {
@@ -151,16 +222,15 @@ export class PeerConnectionManager {
 
   destroy(): void {
     this.pendingIce = [];
-    this.pc?.getSenders().forEach((sender) => {
-      try {
-        sender.track?.stop();
-      } catch {
-      }
-    });
     this.pc?.close();
     this.pc = null;
-
-    this.localStream?.getTracks().forEach((t) => t.stop());
+    this.localStream?.getTracks().forEach((t) => {
+      try {
+        t.stop();
+      } catch {
+        /* ignore */
+      }
+    });
     this.localStream = null;
   }
 }

@@ -57,9 +57,8 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
   const cleaningRef = useRef(false);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
-  const incomingCallRef = useRef(incomingCall);
-  incomingCallRef.current = incomingCall;
   const peerUidRef = useRef<string | null>(null);
+  const shownIncomingIdRef = useRef<string | null>(null);
 
   const clearRingTimer = () => {
     if (ringTimerRef.current) {
@@ -104,6 +103,7 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
         }
       }
 
+      shownIncomingIdRef.current = null;
       setPhase("ended");
       setActiveCall(null);
       setIncomingCall(null);
@@ -223,6 +223,11 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
           return;
         }
 
+        const manager = getOrCreateManager();
+        const stream = await manager.acquireLocalMedia(true, true);
+        setLocalStream(stream);
+        setCameraOn(stream.getVideoTracks().length > 0);
+
         const callId = await createCall({
           callerId: userId,
           callerName: displayName,
@@ -233,14 +238,11 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
         peerUidRef.current = callee.uid;
         await setUserCallBusy(userId, true);
 
-        const manager = getOrCreateManager();
-        const stream = await manager.acquireLocalMedia(true, true);
-        setLocalStream(stream);
+        wireCallSignaling(callId, callee.uid, "caller");
 
         const offer = await manager.createOffer();
         await setCallOffer(callId, offer);
 
-        wireCallSignaling(callId, callee.uid, "caller");
         setPhase("connecting");
 
         ringTimerRef.current = setTimeout(() => {
@@ -277,12 +279,14 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
     await setUserCallBusy(userId, true);
     setPeer({ uid: call.callerId, displayName: call.callerName });
     setPhase("connecting");
+    shownIncomingIdRef.current = null;
     setIncomingCall(null);
 
     try {
       const manager = getOrCreateManager();
       const stream = await manager.acquireLocalMedia(true, true);
       setLocalStream(stream);
+      setCameraOn(stream.getVideoTracks().length > 0);
 
       let offer = call.offer;
       if (!offer) {
@@ -320,49 +324,76 @@ export function usePeerCall({ userId, displayName }: UsePeerCallOptions) {
     } catch (e) {
       console.error(e);
     }
+    shownIncomingIdRef.current = null;
     setIncomingCall(null);
     setPhase("idle");
   }, [incomingCall]);
 
   useEffect(() => {
     if (!userId) return;
+    void clearUserCallBusy(userId);
+  }, [userId]);
 
-    const unsub = subscribeToIncomingCalls(userId, async (call) => {
-      if (!call) {
-        setIncomingCall(null);
-        setPhase((p) => (p === "incoming" ? "idle" : p));
+  useEffect(() => {
+    if (!userId) return;
+
+    const unsub = subscribeToIncomingCalls(userId, (call) => {
+      if (!call) return;
+
+      if (shownIncomingIdRef.current === call.id) {
+        setIncomingCall(call);
         return;
       }
-
-      if (incomingCallRef.current?.id === call.id) return;
 
       const currentPhase = phaseRef.current;
       if (currentPhase !== "idle") {
-        await updateCallStatus(call.id, "busy");
+        void updateCallStatus(call.id, "busy");
         return;
       }
 
-      const busy = await isUserInActiveCall(userId);
-      if (busy) {
-        await updateCallStatus(call.id, "busy");
-        return;
-      }
-
-      setIncomingCall(call);
-      setPhase("incoming");
+      void (async () => {
+        if (await isUserInActiveCall(userId)) {
+          await updateCallStatus(call.id, "busy");
+          return;
+        }
+        shownIncomingIdRef.current = call.id;
+        setIncomingCall(call);
+        setPhase("incoming");
+      })();
     });
 
     return () => unsub();
   }, [userId]);
 
   useEffect(() => {
+    const callId = shownIncomingIdRef.current;
+    if (!callId || phase !== "incoming") return;
+
+    return subscribeToCall(callId, (call) => {
+      if (!call || call.status !== "ringing") {
+        shownIncomingIdRef.current = null;
+        setIncomingCall(null);
+        setPhase("idle");
+        return;
+      }
+      setIncomingCall(call);
+    });
+  }, [phase, incomingCall?.id]);
+
+  useEffect(() => {
     return () => {
-      if (callIdRef.current && phase !== "idle") {
-        void updateCallStatus(callIdRef.current, "ended").catch(() => {});
+      const callId = callIdRef.current;
+      const p = phaseRef.current;
+      if (
+        callId &&
+        (p === "outgoing" || p === "connecting" || p === "connected")
+      ) {
+        void updateCallStatus(callId, "ended").catch(() => {});
+        if (userId) void clearUserCallBusy(userId);
       }
       teardownMedia();
     };
-  }, [teardownMedia, phase]);
+  }, [teardownMedia, userId]);
 
   const toggleMic = useCallback(() => {
     setMicOn((prev) => {

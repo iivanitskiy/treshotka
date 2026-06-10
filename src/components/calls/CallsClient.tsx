@@ -105,7 +105,7 @@ export default function CallsClient() {
       ? "Вызов…"
       : peerCall.phase === "connecting"
         ? "Соединение…"
-        : "В звонке";
+        : "На связи";
 
   if (user.isLoading) {
     return (

@@ -42,7 +42,7 @@ function CallActionButton({
       disabled={disabled}
       className={`${styles.callButton} ${isMobile ? styles.callButtonMobile : ""} ${disabled ? styles.callButtonDisabled : ""}`}
     >
-      {selfInCall ? "В звонке" : "Позвонить"}
+      {selfInCall ? "Разговаривает" : "Позвонить"}
     </Button>
   );
 }
