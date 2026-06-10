@@ -1,0 +1,68 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isParticipant(callData) {
+      return request.auth.uid == callData.callerId
+        || request.auth.uid == callData.calleeId;
+    }
+
+    // Профили пользователей
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Групповые комнаты (Agora) — не трогать при деплое звонков
+    match /rooms/{roomId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn();
+
+      match /participants/{participantId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
+      }
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn();
+      }
+    }
+
+    // Флаг «в звонке» для списка контактов (пишет только владелец)
+    match /callBusy/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // 1:1 звонки — сигналинг WebRTC
+    match /calls/{callId} {
+      allow create: if isSignedIn()
+        && request.resource.data.callerId == request.auth.uid
+        && request.resource.data.status == 'ringing';
+
+      allow read: if isSignedIn() && isParticipant(resource.data);
+
+      allow update: if isSignedIn() && isParticipant(resource.data);
+
+      allow delete: if isSignedIn() && isParticipant(resource.data);
+
+      match /iceCandidates/{candidateId} {
+        allow read: if isSignedIn()
+          && isParticipant(get(/databases/$(database)/documents/calls/$(callId)).data);
+
+        allow create: if isSignedIn()
+          && request.resource.data.fromUserId == request.auth.uid
+          && isParticipant(get(/databases/$(database)/documents/calls/$(callId)).data);
+      }
+    }
+  }
+}

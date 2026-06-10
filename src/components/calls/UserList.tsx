@@ -8,13 +8,60 @@ import styles from "./UserList.module.css";
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
 
+function CallActionButton({
+  user,
+  isMobile,
+  isBusy,
+  selfInCall,
+  onCall,
+}: {
+  user: FirebaseUser;
+  isMobile: boolean;
+  isBusy: boolean;
+  selfInCall: boolean;
+  onCall: () => void;
+}) {
+  if (isBusy) {
+    return (
+      <Button
+        disabled
+        className={`${styles.callButton} ${styles.callButtonBusy} ${isMobile ? styles.callButtonMobile : ""}`}
+      >
+        Занят
+      </Button>
+    );
+  }
+
+  const disabled = !user.online || selfInCall;
+
+  return (
+    <Button
+      type="primary"
+      icon={<PhoneOutlined />}
+      onClick={onCall}
+      disabled={disabled}
+      className={`${styles.callButton} ${isMobile ? styles.callButtonMobile : ""} ${disabled ? styles.callButtonDisabled : ""}`}
+    >
+      {selfInCall ? "В звонке" : "Позвонить"}
+    </Button>
+  );
+}
+
 interface UserListProps {
   users: FirebaseUser[];
   onCallClick?: (userId: string) => void;
   currentUserId?: string;
+  busyUserIds?: Set<string>;
+  selfInCall?: boolean;
 }
 
-export default function UserList({ users, onCallClick, currentUserId }: UserListProps) {
+export default function UserList({
+  users,
+  onCallClick,
+  currentUserId,
+  busyUserIds = new Set(),
+  selfInCall = false,
+}: UserListProps) {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
@@ -73,15 +120,13 @@ export default function UserList({ users, onCallClick, currentUserId }: UserList
               </div>
             </div>
             {user.uid !== currentUserId && (
-              <Button
-                type="primary"
-                icon={<PhoneOutlined />}
-                onClick={() => handleCallClick(user.uid)}
-                disabled={!user.online}
-                className={`${styles.callButton} ${isMobile ? styles.callButtonMobile : ""} ${!user.online ? styles.callButtonDisabled : ""}`}
-              >
-                Позвонить
-              </Button>
+              <CallActionButton
+                user={user}
+                isMobile={isMobile}
+                isBusy={busyUserIds.has(user.uid)}
+                selfInCall={selfInCall}
+                onCall={() => handleCallClick(user.uid)}
+              />
             )}
           </div>
         ))}
